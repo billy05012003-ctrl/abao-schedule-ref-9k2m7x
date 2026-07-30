@@ -100,6 +100,7 @@ input[type=text],input[type=number],select{border:1px solid #ccc;border-radius:5
 .leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .ptbl td[draggable=true]{cursor:grab}
 .ptbl td.drag-over{outline:2px dashed #534AB7}
+.ptbl td.tap-selected{outline:2px solid #534AB7;background:#EEEDFE!important}
 .conf-box{background:#FCEBEB;border:1px solid #E0A0A0;border-radius:6px;padding:8px 10px;margin-bottom:8px}
 .conf-title{font-size:10px;font-weight:600;color:#A32D2D;margin-bottom:4px}
 .conf-item{font-size:9px;color:#7A1A1A;padding:2px 0;border-bottom:1px solid #F0B0B0;display:flex;gap:4px}
@@ -929,6 +930,22 @@ function dropStatus(ev,name,d){
   if(!confirm(`此調整會將「${fromName}」第${fromD}日 與「${name}」第${d}日 的班表狀態互換，可能影響相關統計，是否確定套用？`))return;
   applyManualSwap(fromName,fromD,name,d,true);
 }
+let tapSrc=null;
+function cellTapSwap(ev,name,d){
+  if(!generatedData||!generatedData.sched[name])return;
+  if(!tapSrc){
+    tapSrc={name,d,el:ev.currentTarget};
+    ev.currentTarget.classList.add('tap-selected');
+    return;
+  }
+  const{name:fromName,d:fromD,el:fromEl}=tapSrc;
+  tapSrc=null;
+  if(fromEl)fromEl.classList.remove('tap-selected');
+  if(fromName===name&&fromD===d)return;
+  if(!generatedData.sched[fromName])return;
+  if(!confirm(`此調整會將「${fromName}」第${fromD}日 與「${name}」第${d}日 的班表狀態互換，可能影響相關統計，是否確定套用？`))return;
+  applyManualSwap(fromName,fromD,name,d,true);
+}
 function applyManualSwap(name1,d1,name2,d2,record){
   const{sched,supMap,mandatoryOff}=generatedData;
   if(!sched[name1]||!sched[name2])return;
@@ -973,7 +990,7 @@ function renderPreview(sched,cal,supMap,conflicts,mandatoryOff){
         if(wd===5)bg='background:#E8F5E9;'; // 週六淡綠底
         if(wd===6)bg='background:#FFF0F3;'; // 週日淡粉底
         const isMust=st==='off'&&mandatoryOff&&mandatoryOff[s.name+'_'+d];
-        return`<td class="${CLS[st]||'c-work'}" style="${bg}padding:3px 2px;font-size:9px;text-align:center;${isMust?'font-weight:700;':''}" draggable="true" ondragstart="dragCellStart(event,'${s.name}',${d})" ondragover="allowDrop(event)" ondragleave="dragLeaveCell(event)" ondrop="dropStatus(event,'${s.name}',${d})">${TXT[st]||''}</td>`;
+        return`<td class="${CLS[st]||'c-work'}" style="${bg}padding:3px 2px;font-size:9px;text-align:center;${isMust?'font-weight:700;':''}" draggable="true" ondragstart="dragCellStart(event,'${s.name}',${d})" ondragover="allowDrop(event)" ondragleave="dragLeaveCell(event)" ondrop="dropStatus(event,'${s.name}',${d})" onclick="cellTapSwap(event,'${s.name}',${d})">${TXT[st]||''}</td>`;
       }).join('');
       return`<tr><td style="font-size:9px;font-weight:600;white-space:nowrap;text-align:left;padding:3px 5px;min-width:32px;border-right:2px solid #ccc;position:sticky;left:0;background:#fff;z-index:1">${s.name}</td>${cells}</tr>`;
     }).join('');
@@ -1002,7 +1019,7 @@ function renderPreview(sched,cal,supMap,conflicts,mandatoryOff){
       <div class="leg"><div class="leg-dot" style="background:#FADDE1;border:1px solid #E0A0A8"></div>週日</div>
     </div>
     <div style="margin:4px 0 8px;padding:6px 8px;background:#FAFAFC;border:1px dashed #ccc;border-radius:6px">
-      <div style="font-size:8px;color:#888">🖐️ 直接拖曳格子到另一格可互換兩天的班表狀態（重新生成同年月會自動保留此調整，年月變更則清空）</div>
+      <div style="font-size:8px;color:#888">🖐️ 電腦：直接拖曳格子到另一格可互換兩天的班表狀態；手機：點一下選取、再點一下要互換的格子（重新生成同年月會自動保留此調整，年月變更則清空）</div>
     </div>
     ${conflicts.length?`<div class="conf-box"><div class="conf-title">⚠ 發現 ${conflicts.length} 項需注意</div>${conflicts.map(c=>`<div class="conf-item"><span>${c.type==='error'?'❌':'⚠️'}</span><span>${c.msg}</span></div>`).join('')}</div>`:`<div class="ok-box">✅ 設定無明顯衝突，班表已生成</div>`}
     ${mobStaff.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FFFBEB;border:1px solid #F5C842">🔄 機動人員</div>${buildTable(mobStaff,'')}</div>`:''}
