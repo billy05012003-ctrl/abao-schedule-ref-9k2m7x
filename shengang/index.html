@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>伸港排班系統v27 (單機版)</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;color:#1a1a1a;font-size:12px;background:#f0f0f0}
+.layout{display:grid;grid-template-columns:292px 1fr;min-height:680px}
+.panel{border-right:1px solid #ddd;display:flex;flex-direction:column;background:#fff}
+.sys-hdr{padding:8px 12px;background:#534AB7;color:#fff;flex-shrink:0}
+.sys-title{font-size:12px;font-weight:700}.sys-sub{font-size:9px;opacity:.8}
+.panel-scroll{flex:1;overflow-y:auto;padding:8px}
+.sec{border:1px solid #e0e0e0;border-radius:8px;margin-bottom:7px;overflow:hidden}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;cursor:pointer;background:#f7f7f7;user-select:none}
+.st{font-size:11px;font-weight:600}
+.sb{padding:9px 11px 11px;border-top:1px solid #e0e0e0;background:#fff}
+.collapsed .sb{display:none}
+.fg{display:flex;flex-direction:column;gap:2px;margin-top:5px}
+.fg label{font-size:9px;color:#666}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}
+input[type=text],input[type=number],select{border:1px solid #ccc;border-radius:5px;padding:3px 6px;font-size:10px;width:100%;background:#fff;color:#1a1a1a}
+.cbr{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:10px}
+.cbr:last-child{border-bottom:none}
+.cbr input[type=checkbox]{width:12px;height:12px;accent-color:#534AB7;cursor:pointer}
+.hint{background:#FFFBEB;border:1px solid #F5C842;border-radius:5px;padding:6px 8px;margin-top:5px;font-size:9px;color:#7A5500}
+.stab{padding:2px 7px;border:1px solid #ddd;border-radius:10px;font-size:9px;cursor:pointer;background:#f5f5f5;color:#555}
+.stab.active{font-weight:600;color:#534AB7;border-color:#534AB7;background:#EEEDFE}
+.store-tabs{display:flex;gap:3px;margin-bottom:6px;flex-wrap:wrap}
+.card{background:#f9f9f9;border-radius:6px;border:1px solid #e0e0e0;margin-bottom:4px}
+.ct{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 9px}
+.sa{display:flex;gap:2px}
+.bi{background:none;border:none;cursor:pointer;color:#888;font-size:11px;padding:1px 3px}
+.bi:hover{color:#333}
+.bdg{font-size:8px;padding:1px 4px;border-radius:6px;font-weight:500;white-space:nowrap}
+.abox{background:#f9f9f9;border-radius:6px;padding:8px;margin-top:6px;border:1px solid #e0e0e0}
+.abox h4{font-size:10px;font-weight:600;margin-bottom:6px}
+.badd{background:#1a1a1a;color:#fff;border:none;padding:4px 9px;border-radius:5px;font-size:9px;cursor:pointer;width:100%;margin-top:6px}
+.badd:hover{opacity:.85}
+.bsec{background:#fff!important;color:#1a1a1a!important;border:1px solid #ccc!important}
+.ei{background:#fff;border-top:1px solid #e0e0e0;padding:7px 9px}
+.skill-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px}
+.ski{display:flex;align-items:center;gap:3px;font-size:9px;color:#666;cursor:pointer}
+.ski input[type=checkbox]{width:11px;height:11px;accent-color:#534AB7}
+.poff{background:#FAEEDA;color:#633806}.pon{background:#D4EDDA;color:#155724}
+.rtag{font-size:8px;padding:1px 4px;border-radius:5px;background:#EEEDFE;color:#3C3489;font-weight:500}
+.divider{height:1px;background:#e0e0e0;margin:5px 0}
+.ms-stores{display:none;flex-wrap:wrap;gap:4px;margin-top:4px;padding:5px 7px;background:#fff;border:1px solid #ccc;border-radius:5px}
+.ms-stores.open{display:flex}
+.ms-item{display:flex;align-items:center;gap:2px;font-size:9px;cursor:pointer}
+.ms-item input{width:auto;accent-color:#534AB7}
+.tog{position:relative;display:inline-block;width:28px;height:16px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:16px;transition:.2s}
+.tog-sl:before{content:'';position:absolute;width:11px;height:11px;left:2px;top:2.5px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:#534AB7}
+.tog input:checked+.tog-sl:before{transform:translateX(12px)}
+.spinner{display:inline-flex;flex-direction:column;border:1px solid #ccc;border-radius:3px;overflow:hidden}
+.spinner-val{padding:1px 5px;font-size:10px;font-weight:600;text-align:center;background:#fff;min-width:22px;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0}
+.spin-up,.spin-dn{background:#f5f5f5;border:none;cursor:pointer;font-size:7px;padding:1px 4px;color:#555;line-height:1.4}
+.spin-up:hover,.spin-dn:hover{background:#EEEDFE;color:#534AB7}
+.spin-wrap{display:flex;align-items:center;gap:4px;margin-top:2px}
+.skill-block{background:#f9f9f9;border-radius:6px;border:1px solid #e0e0e0;padding:8px 9px;margin-bottom:5px}
+.sbt{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.sbt span{font-size:10px;font-weight:500}
+.sbd{font-size:9px;color:#666;margin-bottom:4px}
+.sub-label{font-size:9px;font-weight:600;color:#666;margin:7px 0 3px}
+.oc-store{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:7px;padding:8px;margin-bottom:7px}
+.oc-title{font-size:10px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.oc-sum{background:#fff;border:1px solid #F5C842;border-radius:5px;padding:5px 7px;font-size:9px;color:#7A5500;margin-bottom:5px}
+.oc-hint{font-size:9px;color:#666;margin-bottom:5px}
+.oc-group{background:#fff;border:1px solid #ddd;border-radius:6px;padding:7px;margin-bottom:4px}
+.oc-ghdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.oc-glabel{font-size:9px;font-weight:600;color:#534AB7}
+.oc-del-g{background:none;border:none;cursor:pointer;font-size:9px;color:#A32D2D}
+.oc-row{display:grid;grid-template-columns:1fr 1fr 36px 18px;gap:3px;align-items:center;margin-bottom:3px}
+.oc-row select{font-size:9px;padding:2px 3px}
+.oc-del-r{background:none;border:none;cursor:pointer;color:#A32D2D;font-size:11px;font-weight:600}
+.oc-add-m{background:none;border:1px dashed #ccc;border-radius:4px;padding:2px 7px;font-size:9px;color:#888;cursor:pointer;width:100%;margin-top:3px}
+.oc-or{text-align:center;font-size:9px;color:#A32D2D;font-weight:600;margin:3px 0}
+.oc-add-g{background:none;border:1px solid #534AB7;border-radius:5px;padding:4px 9px;font-size:9px;color:#534AB7;cursor:pointer;width:100%;margin-top:3px}
+.adj-empty{font-size:9px;color:#888;padding:3px 0 5px}
+.adj-card{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;padding:7px 9px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.btn-adj-new{background:#0F6E56;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;margin-bottom:6px}
+.adj-form-box{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;padding:8px;margin-top:4px}
+.adj-note{font-size:8px;color:#666;margin-top:4px;padding:4px 6px;background:#fff;border-radius:3px}
+.btn-adj-add{background:#0F6E56;color:#fff;border:none;padding:4px 9px;border-radius:5px;font-size:9px;cursor:pointer;width:100%;margin-top:6px}
+.main{display:flex;flex-direction:column;background:#f0f0f0}
+.main-hdr{padding:8px 12px;border-bottom:1px solid #ddd;background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.main-body{flex:1;padding:10px;overflow-y:auto}
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:7px;text-align:center;color:#999}
+.prev-sec{margin-bottom:12px;background:#fff;border-radius:8px;padding:8px;border:1px solid #e0e0e0}
+.prev-hdr{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;margin-bottom:5px;padding:4px 7px;border-radius:5px}
+.ptbl{width:100%;border-collapse:collapse;font-size:8px;table-layout:fixed}
+.ptbl th,.ptbl td{border:1px solid #e8e8e8;padding:2px 2px;text-align:center;overflow:hidden;white-space:nowrap}
+.ptbl th{background:#f5f5f5;color:#666;font-weight:500}
+.c-off{background:#D4EDDA;color:#155724}
+.c-sup{background:#D8D3F5;color:#2D2480}
+.c-mob{background:#FFF3C4;color:#7A5500}
+.c-must{background:#F5ECD7;color:#6B4C1E}
+.c-work{background:#fff}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.leg{display:flex;align-items:center;gap:2px;font-size:8px;color:#666}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.ptbl td[draggable=true]{cursor:grab}
+.ptbl td.drag-over{outline:2px dashed #534AB7}
+.conf-box{background:#FCEBEB;border:1px solid #E0A0A0;border-radius:6px;padding:8px 10px;margin-bottom:8px}
+.conf-title{font-size:10px;font-weight:600;color:#A32D2D;margin-bottom:4px}
+.conf-item{font-size:9px;color:#7A1A1A;padding:2px 0;border-bottom:1px solid #F0B0B0;display:flex;gap:4px}
+.conf-item:last-child{border-bottom:none}
+.ok-box{background:#D4EDDA;border:1px solid #90C090;border-radius:6px;padding:7px 10px;margin-bottom:8px;font-size:9px;color:#155724;font-weight:500}
+.bottom-btns{padding:8px 10px;border-top:1px solid #ddd;display:flex;gap:6px;background:#fff;flex-shrink:0}
+.btn-gen{background:#534AB7;color:#fff;border:none;padding:8px 0;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;flex:1}
+.btn-gen:hover{background:#3C3489}
+.btn-dl{background:#3B6D11;color:#fff;border:none;padding:8px 0;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;flex:1}
+.btn-dl:hover{background:#27500A}
+.btn-dl:disabled{background:#aaa;cursor:not-allowed}
+.topnav{display:flex;background:#1a1a1a;flex-shrink:0}
+.tnitem{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:#999;cursor:pointer;border-bottom:3px solid transparent;user-select:none}
+.tnitem.active{color:#fff;border-bottom-color:#534AB7;background:#262626}
+.tnitem.locked{color:#555;cursor:not-allowed}
+.page{display:none}
+.page.active{display:block}
+#page-1.page.active{display:grid}
+.sptbl{width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed}
+.sptbl th,.sptbl td{border:1px solid #e8e8e8;padding:3px 2px;text-align:center;min-width:30px}
+.sptbl th{background:#f5f5f5;color:#666;font-weight:500}
+.spcell{cursor:pointer;color:#bbb;font-weight:700}
+.spcell.filled{color:#534AB7;font-weight:600;background:#EEEDFE}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal-box{background:#fff;border-radius:10px;padding:16px;width:280px;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.modal-box h4{font-size:12px;font-weight:700;margin-bottom:8px}
+.modal-warn{background:#FFFBEB;border:1px solid #F5C842;border-radius:5px;padding:6px 8px;font-size:9px;color:#7A5500;margin-bottom:8px}
+.modal-row{display:flex;gap:6px;margin-bottom:6px}
+.modal-row select{font-size:10px}
+.modal-hrs{background:#E1F5EE;color:#085041;border-radius:5px;padding:5px;text-align:center;font-size:10px;font-weight:600;margin:6px 0}
+.modal-btns{display:flex;gap:5px;margin-top:8px}
+.modal-btns button{flex:1;border:none;border-radius:5px;padding:6px 0;font-size:10px;cursor:pointer;font-weight:600}
+.mb-save{background:#0F6E56;color:#fff}.mb-clear{background:#FCEBEB;color:#A32D2D}.mb-cancel{background:#f0f0f0;color:#555}
+@media (max-width:768px){
+body{font-size:13px}
+.layout{grid-template-columns:1fr;min-height:auto}
+.panel{border-right:none;border-bottom:1px solid #ddd}
+.panel-scroll{overflow-y:visible}
+.main-body{overflow-y:visible}
+.tnitem{padding:12px 4px;font-size:11px}
+input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8px}
+.badd,.btn-adj-new,.btn-adj-add{padding:8px 0;font-size:11px}
+.btn-gen,.btn-dl{padding:11px 0;font-size:12px}
+.cbr input[type=checkbox],.ski input[type=checkbox]{width:16px;height:16px}
+.tog{width:36px;height:20px}
+.tog-sl:before{width:14px;height:14px}
+.tog input:checked+.tog-sl:before{transform:translateX(16px)}
+.stab{padding:5px 10px;font-size:10px}
+.modal-box{width:88vw;max-width:320px}
+.spinner-val{padding:4px 8px;font-size:12px}
+.spin-up,.spin-dn{padding:4px 8px;font-size:9px}
+}
+</style>
+</head><body>
+<div class="topnav" id="topnav"></div>
+<div class="sys-hdr"><div class="sys-title" id="sys-title">🗓 伸港排班系統v27 (單機版)</div><div class="sys-sub" id="sys-sub">設定規則 → 生成初假表 → 下載初假表Excel</div></div>
+<div class="layout page active" id="page-1">
+<div class="panel">
+<div class="panel-scroll">
+
+<div class="sec" id="s-date"><div class="sh" onclick="tog('s-date')"><div class="st">📅 假表設定</div><span id="cv-s-date">▲</span></div><div class="sb">
+<div class="r2"><div class="fg" style="margin-top:0"><label>年</label><input type="number" id="yr" value="2026" min="2024" max="2030" onchange="checkHint()"></div><div class="fg" style="margin-top:0"><label>月</label><input type="number" id="mo" value="7" min="1" max="12" onchange="checkHint()"></div></div>
+<div style="margin-top:7px;font-size:9px;color:#666;margin-bottom:3px">假日定義</div>
+<div class="cbr"><input type="checkbox" id="sat" checked><label for="sat">週六算假日</label></div>
+<div class="cbr"><input type="checkbox" id="sun" checked><label for="sun">週日算假日</label></div>
+<div style="margin-top:7px;font-size:9px;color:#666;margin-bottom:3px">國定假日</div>
+<div id="hint" class="hint" style="display:none"><div style="display:flex;justify-content:space-between;gap:5px;align-items:flex-start"><div><strong id="hint-t"></strong><br><span id="hint-b"></span></div><button onclick="autoFill()" style="background:#534AB7;color:#fff;border:none;padding:2px 6px;border-radius:3px;font-size:8px;cursor:pointer;white-space:nowrap">自動代入</button></div></div>
+<div class="fg"><label>自訂（逗號分隔）</label><input type="text" id="hols" placeholder="例：1,2,3" oninput="renderHolList()"></div>
+<div id="hol-list"></div>
+<div style="margin-top:8px;font-size:9px;color:#666;margin-bottom:2px">農曆／特殊備註（格式 日:文字，逗號分隔）</div>
+<input type="text" id="lunar-notes" placeholder="例：1:十六,15:初一限定,16:初二">
+<div style="margin-top:8px;font-size:9px;color:#666;margin-bottom:2px">Excel 底部備註（自由輸入，可多行）</div>
+<textarea id="bottom-notes" placeholder="例：6/21-6/28夏至活動…" style="width:100%;font-size:10px;padding:5px 7px;border:1px solid #ccc;border-radius:5px;min-height:50px;font-family:inherit"></textarea>
+<div style="margin-top:8px;font-size:9px;font-weight:600;margin-bottom:2px">每天出勤人數上限</div>
+<div style="font-size:8px;color:#666;margin-bottom:5px">每天每店出勤人數必須 ≤ 上限，超過則主動排休</div>
+<div class="store-tabs" id="need-stabs"></div><div id="need-table"></div>
+</div></div>
+
+<div class="sec" id="s-open"><div class="sh" onclick="tog('s-open')"><div class="st">🏪 開店條件</div><span id="cv-s-open">▲</span></div><div class="sb"><div id="open-conditions"></div></div></div>
+
+<div class="sec" id="s-staff"><div class="sh" onclick="tog('s-staff')"><div class="st">👥 夥伴管理</div><span id="cv-s-staff">▲</span></div><div class="sb">
+<div style="font-size:8px;color:#666;margin-bottom:5px;background:#f0f0f0;padding:4px 7px;border-radius:4px">↑ = 下限（至少排幾天）・月休 = 上限（最多幾天）</div>
+<div id="staff-list"></div>
+<div class="abox"><h4>＋ 新增夥伴</h4>
+<div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input type="text" id="n-name" placeholder="姓名"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="n-store"><option>新港店</option><option>中興店</option><option>機動人員</option></select></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>職別</label><select id="n-type"><option>正職</option><option>計時</option><option>八小時全職</option><option>機動人員</option></select></div><div class="fg" style="margin-top:0"><label>月休上限</label><input type="number" id="n-days" value="6" min="0" max="31"></div></div>
+<div class="r2">
+<div class="fg" style="margin-top:0"><label>平日休下限（天）</label><div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('n-wd',1,0,8)">▲</button><div class="spinner-val" id="n-wd-v">0</div><button class="spin-dn" onclick="spin('n-wd',-1,0,8)">▼</button></div><input type="hidden" id="n-wd" value="0"></div></div>
+<div class="fg" style="margin-top:0"><label>假日休下限（天）</label><div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('n-hd',1,0,8)">▲</button><div class="spinner-val" id="n-hd-v">0</div><button class="spin-dn" onclick="spin('n-hd',-1,0,8)">▼</button></div><input type="hidden" id="n-hd" value="0"></div></div>
+</div>
+<div style="font-size:9px;color:#7A5500;margin-top:3px;background:#FFFBEB;padding:3px 6px;border-radius:3px">平日休下限＋假日休下限 ≤ 月休上限</div>
+<div style="margin-top:5px"><div style="font-size:9px;color:#666;margin-bottom:2px">能力分級</div>
+<div class="skill-row">
+<label class="ski"><input type="checkbox" id="sk-g"> 煎台<select id="sk-gl" style="width:auto;font-size:8px;padding:1px 2px"><option>丙</option><option>乙</option><option>甲</option></select></label>
+<label class="ski"><input type="checkbox" id="sk-c"> 櫃台<select id="sk-cl" style="width:auto;font-size:8px;padding:1px 2px"><option>丙</option><option>乙</option><option>甲</option></select></label>
+<label class="ski"><input type="checkbox" id="sk-d"> 包飲</label>
+<label class="ski"><input type="checkbox" id="sk-i"> 實習生</label>
+</div></div>
+<button class="badd" onclick="addStaff()">＋ 新增夥伴</button></div>
+</div></div>
+
+<div class="sec" id="s-pin"><div class="sh" onclick="tog('s-pin')"><div class="st">📌 必休／必上</div><span id="cv-s-pin">▲</span></div><div class="sb">
+<div id="pin-list"></div>
+<div class="abox"><h4>新增</h4>
+<div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="p-staff"></select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="p-type"><option value="off">必休</option><option value="on">必上</option></select></div></div>
+<div style="height:1px;background:#e0e0e0;margin:5px 0"></div>
+<div class="fg" style="margin-top:0"><label>📆 指定日期（逗號分隔）</label><input type="text" id="p-dates" placeholder="不填則略過"></div>
+<div class="fg"><label>📅 指定星期</label><input type="text" id="p-weeks" placeholder="不填則略過"></div>
+<button class="badd" onclick="addPin()">＋ 新增</button></div>
+</div></div>
+
+<div class="sec" id="s-adj"><div class="sh" onclick="tog('s-adj')"><div class="st">✏️ 休假日微調</div><span id="cv-s-adj">▲</span></div><div class="sb">
+<div style="font-size:9px;color:#666;margin-bottom:5px;line-height:1.5">生成班表後，可將休假日從A日挪到B日。</div>
+<div id="adj-list"></div>
+<button class="btn-adj-new" onclick="toggleAdjForm()">新增微調</button>
+<div id="adj-form" style="display:none"><div class="adj-form-box">
+<div class="store-tabs" id="adj-type-tabs">
+<button class="stab active" onclick="switchAdjType(1)">類型一・同人</button>
+<button class="stab" onclick="switchAdjType(2)">類型二・同店</button>
+<button class="stab" onclick="switchAdjType(3)">類型三・跨店</button>
+</div>
+<div id="adj-type-1">
+<div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="adj-staff"></select></div><div></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>原休假日（A）</label><input type="text" id="adj-a" placeholder="例：17"></div><div class="fg" style="margin-top:0"><label>挪到（B）</label><input type="text" id="adj-b" placeholder="例：19"></div></div>
+<div class="adj-note">A日原本是休假→改為上班；B日原本是上班→改為休假</div>
+</div>
+<div id="adj-type-2" style="display:none">
+<div class="r2"><div class="fg" style="margin-top:0"><label>讓出休假（夥伴乙）</label><select id="adj2-from"></select></div><div class="fg" style="margin-top:0"><label>接受休假（夥伴甲・同店）</label><select id="adj2-to"></select></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>乙的休假日（A）</label><input type="text" id="adj2-a" placeholder="例：17"></div><div class="fg" style="margin-top:0"><label>甲改休（B）</label><input type="text" id="adj2-b" placeholder="例：19"></div></div>
+<div class="adj-note">夥伴乙 A日：休假→上班；夥伴甲 B日：上班→休假（同門市）</div>
+</div>
+<div id="adj-type-3" style="display:none">
+<div class="r2"><div class="fg" style="margin-top:0"><label>讓出休假（夥伴乙）</label><select id="adj3-from"></select></div><div class="fg" style="margin-top:0"><label>接受休假（夥伴甲・不同店）</label><select id="adj3-to"></select></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>乙的休假日（A）</label><input type="text" id="adj3-a" placeholder="例：17"></div><div class="fg" style="margin-top:0"><label>甲改休（B）</label><input type="text" id="adj3-b" placeholder="例：19"></div></div>
+<div class="adj-note">夥伴乙 A日：休假→上班；夥伴甲 B日：上班→休假（不同門市）</div>
+</div>
+<button class="btn-adj-add" onclick="addAdj()">＋ 加入微調</button>
+</div></div>
+</div></div>
+
+<div class="sec" id="s-rules"><div class="sh" onclick="tog('s-rules')"><div class="st">⚙️ 排班規則</div><span id="cv-s-rules">▲</span></div><div class="sb">
+<div class="sub-label">🎯 排班技能</div>
+<div class="skill-block"><div class="sbt"><span>假日避休（計時／機動人員）</span><label class="tog"><input type="checkbox" id="sk-holiday" checked><span class="tog-sl"></span></label></div><div class="sbd">計時和機動人員假日盡量出勤，假日休假只在必休或跨店連動時才排</div></div>
+<div class="skill-block"><div class="sbt"><span>休假間距</span><label class="tog"><input type="checkbox" id="sk-gap" checked><span class="tog-sl"></span></label></div><div class="sbd">分散排休，避免休假過密</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<div><div style="font-size:9px;color:#666;margin-bottom:2px">最短間距</div><div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('sk-mingap',1,0,5)">▲</button><div class="spinner-val" id="sk-mingap-v">2</div><button class="spin-dn" onclick="spin('sk-mingap',-1,0,5)">▼</button></div><input type="hidden" id="sk-mingap" value="2"><span style="font-size:9px;color:#666">天</span></div></div>
+</div></div>
+<div class="skill-block"><div class="sbt"><span>平日出勤人力保障</span><label class="tog"><input type="checkbox" id="sk-manpower" checked><span class="tog-sl"></span></label></div><div class="sbd">計算全月可排休平日總名額，等比例調整每位夥伴平日休下限（不足則減少，超出則增加）</div></div>
+
+<div class="sub-label">🏪 門市規則</div><div id="store-rule-list"></div>
+<div class="abox"><h4>新增門市規則</h4><div class="fg" style="margin-top:0"><label>門市</label><select id="r-store"><option>新港店</option><option>中興店</option></select></div><div class="fg"><label>規則描述</label><input type="text" id="r-store-desc" placeholder="例：週六日2人開店"></div><button class="badd" onclick="addStoreRule()">＋ 新增</button></div>
+
+<div class="sub-label">👤 夥伴規則</div>
+<div style="font-size:8px;color:#888;margin-bottom:4px;padding:3px 6px;background:#f5f5f5;border-radius:3px">同步休假：觸發人休假→夥伴同步休假 ／ 同步出勤：觸發人出勤→夥伴同步出勤</div>
+<div id="staff-rule-list"></div>
+<div class="abox"><h4>新增夥伴規則</h4>
+<div class="r2"><div class="fg" style="margin-top:0"><label>夥伴（被連動）</label><select id="r-staff-name"></select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="r-type"><option>同步休假</option><option>同步出勤</option><option>其他</option></select></div></div>
+<div class="fg"><label>觸發人</label><select id="r-staff"></select></div>
+<div class="fg"><label>描述（可選）</label><input type="text" id="r-staff-desc" placeholder="例：紫雲平日出勤Billy同步出勤"></div>
+<button class="badd" onclick="addStaffRule()">＋ 新增</button></div>
+
+<div class="sub-label">🔄 跨店支援規則</div><div id="cross-list"></div>
+<div class="abox"><h4>新增跨店規則</h4>
+<div class="r2"><div class="fg" style="margin-top:0"><label>支援人員</label><select id="cr-staff"></select></div><div class="fg" style="margin-top:0"><label>支援門市</label><select id="cr-store"><option>新港店</option><option>中興店</option><option>彰水店</option></select></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>觸發條件</label><select id="cr-trigger" onchange="toggleNewCondPerson()"><option>固定星期</option><option>特定人休假時</option><option>人力不足時</option><option>其他</option></select></div><div class="fg" style="margin-top:0"><label>星期說明</label><input type="text" id="cr-cond" placeholder="例：週四"></div></div>
+<div id="cr-cond-person-row" style="display:none"><div class="fg" style="margin-top:0"><label>指定人（休假時觸發）</label><select id="cr-cond-person"></select></div></div>
+<div class="fg" style="margin-top:4px"><label>連動排休人員（可空白）</label><select id="cr-linked-rest"><option value="">— 無 —</option></select></div>
+<button class="badd" onclick="addCrossRule()">＋ 新增</button></div>
+
+<div class="sub-label">🗺️ 地區群組</div><div id="group-list"></div>
+<div class="abox"><button class="badd" onclick="addStoreGroup()">＋ 新增群組</button></div>
+</div></div>
+
+</div></div>
+<div class="main">
+<div class="main-hdr"><div style="font-size:11px;font-weight:600">📋 假表預覽</div><div style="font-size:9px;color:#666">必休必上→跨店支援→夥伴規則→人力上限→月休分配</div></div>
+<div class="main-body" id="main-body"><div class="ph"><div style="font-size:30px">🗓</div><div style="font-size:12px;font-weight:600">尚未生成初假表</div><div style="font-size:9px;line-height:1.6">完成左側設定後<br>按「⚡ 生成初假表」<br>修改後可重新生成</div></div></div>
+<div class="bottom-btns">
+<button class="btn-gen" onclick="genSchedule()">⚡ 生成初假表</button>
+<button class="btn-dl" id="btn-dl" onclick="downloadExcel()" disabled>⬇ 下載初假表Excel</button>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-2" style="padding:16px;background:#f0f0f0;min-height:680px">
+<div id="page2-panel"></div>
+<div class="main-hdr" style="background:#fff;border-radius:8px 8px 0 0;border:1px solid #e0e0e0;border-bottom:none"><div style="font-size:11px;font-weight:600">📋 次假表預覽</div><div style="font-size:9px;color:#666">完整初假表＋貼班疊加＋情境連動標示</div></div>
+<div id="page2-preview" style="background:#fff;border:1px solid #e0e0e0;border-radius:0 0 8px 8px;padding:10px;min-height:200px"><div class="ph"><div style="font-size:30px">🏷️</div><div style="font-size:12px;font-weight:600">尚未生成次假表</div><div style="font-size:9px;line-height:1.6">上方新增貼班人員後<br>按「⚡ 生成次假表」</div></div></div>
+<div class="bottom-btns" style="background:#fff;border-radius:8px;margin-top:12px">
+<button class="btn-gen" onclick="genPage2()">⚡ 生成次假表</button>
+<button class="btn-dl" id="btn-skel" onclick="exportScheduleSkeleton()" disabled style="background:#534AB7">⬇ 匯出假表骨架</button>
+<button class="btn-dl" id="btn-dl2" onclick="downloadExcel2()" disabled>⬇ 下載次假表Excel</button>
+</div>
+</div>
+
+<div class="page" id="page-3" style="padding:16px;background:#f0f0f0;min-height:680px">
+<div style="background:#fff;border-radius:8px;padding:14px;margin-bottom:12px">
+<div style="font-size:12px;font-weight:700;margin-bottom:8px">📤 上傳次假表（選用・覆蓋）</div>
+<div style="font-size:9px;color:#666;margin-bottom:6px">資料已自動由第二頁帶入。若手動微調（例如把計時人員名字改成「素玲9.5」表示當天上班9.5小時），上傳「次假表Excel」並進行覆蓋</div>
+<input type="file" id="p3-file" accept=".xlsx" onchange="handleP3Upload(event)">
+<div id="p3-upload-status" style="font-size:9px;color:#888;margin-top:6px">尚未上傳覆蓋檔案（目前使用第二頁自動帶入的資料）</div>
+</div>
+<div class="main-hdr" style="background:#fff;border-radius:8px 8px 0 0;border:1px solid #e0e0e0;border-bottom:none"><div style="font-size:11px;font-weight:600">📑 薪資假表預覽</div><div style="font-size:9px;color:#666">上傳檔案內容＋統計欄位疊加</div></div>
+<div id="page3-preview" style="background:#fff;border:1px solid #e0e0e0;border-radius:0 0 8px 8px;padding:10px;min-height:200px"><div class="ph"><div style="font-size:30px">📑</div><div style="font-size:12px;font-weight:600">尚未生成薪資假表</div><div style="font-size:9px;line-height:1.6">直接按「⚡ 生成薪資假表」<br>（資料自動由第二頁帶入，也可選擇上傳覆蓋）</div></div></div>
+<div class="bottom-btns" style="background:#fff;border-radius:8px;margin-top:12px">
+<button class="btn-gen" onclick="genPage3()">⚡ 生成薪資假表</button>
+<button class="btn-dl" id="btn-dl3" onclick="downloadExcel3()" disabled>⬇ 下載薪資假表Excel</button>
+</div>
+</div>
+
+<div class="page" id="page-4" style="padding:16px;background:#f0f0f0;min-height:680px">
+<div style="background:#fff;border-radius:8px;padding:30px;text-align:center;color:#999"><div style="font-size:30px">💰</div><div style="font-size:12px;font-weight:600;margin-top:6px">薪資表 — 內容開發中</div><div style="font-size:9px;margin-top:4px">讀取薪資假表＋業績X→福利Y，後續討論後開放</div>
+<div class="bottom-btns" style="justify-content:center;border-top:none;margin-top:16px">
+<button class="btn-gen" style="flex:0 0 200px" disabled>⚡ 生成薪資表</button>
+<button class="btn-dl" style="flex:0 0 200px" disabled>⬇ 下載 Excel IV</button>
+</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<script>
+if(new Date()>new Date('2026-12-31T23:59:59')){
+  document.body.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;font-family:'Microsoft JhengHei',sans-serif;text-align:center;padding:20px">
+    <div style="background:#fff;border-radius:12px;padding:40px 30px;box-shadow:0 2px 12px rgba(0,0,0,0.1);max-width:420px">
+      <div style="font-size:40px;margin-bottom:12px">⏳</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;color:#333">此版本已過期</div>
+      <div style="font-size:12px;color:#666;line-height:1.7">「伸港排班系統v27 (單機版)」適用期限至 2026/12/31（系統內建之國定假日資料僅涵蓋2026年）。<br>請聯繫小保取得新版本後再繼續使用。</div>
+    </div>
+  </div>`;
+  document.title='已過期 - 伸港排班系統';
+  throw new Error('此版本已過期（適用至2026/12/31），請聯繫小保取得新版本');
+}
+// 密碼門檻（2026-07-28新增，自訂彈窗版）：只擋一般不相關人員誤開，前端密碼看得到原始碼，不是真資安防護
+(function(){
+  const SITE_PASSWORD='3345678';
+  const AUTH_KEY='mk_auth_shengang';
+  if(localStorage.getItem(AUTH_KEY)==='1')return;
+  const gate=document.createElement('div');
+  gate.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;font-family:-apple-system,"Microsoft JhengHei",sans-serif';
+  gate.innerHTML=`
+    <div style="background:#fff;border-radius:14px;padding:32px 28px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.28);text-align:center">
+      <div style="width:52px;height:52px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px">🔒</div>
+      <div style="font-size:15px;font-weight:500;color:#222;margin-bottom:2px">伸港排班系統</div>
+      <div style="font-size:11px;color:#888;margin-bottom:20px">輸入通行密碼繼續使用</div>
+      <input type="password" id="gate-pw" placeholder="通行密碼" style="width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:center;margin-bottom:6px;outline:none">
+      <div id="gate-err" style="font-size:10px;color:#A32D2D;min-height:16px;margin-bottom:10px"></div>
+      <button id="gate-btn" style="width:100%;background:#534AB7;color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">確定</button>
+      <div style="font-size:10px;color:#aaa;margin-top:16px">忘記請聯繫老闆</div>
+    </div>`;
+  document.body.appendChild(gate);
+  function trySubmit(){
+    const val=document.getElementById('gate-pw').value;
+    if(val===SITE_PASSWORD){
+      localStorage.setItem(AUTH_KEY,'1');
+      gate.remove();
+    }else{
+      document.getElementById('gate-err').textContent='密碼錯誤，請再試一次';
+      document.getElementById('gate-pw').value='';
+      document.getElementById('gate-pw').focus();
+    }
+  }
+  document.getElementById('gate-btn').onclick=trySubmit;
+  document.getElementById('gate-pw').addEventListener('keydown',e=>{if(e.key==='Enter')trySubmit();});
+  document.getElementById('gate-pw').focus();
+})();
+const STORES=['新港店','中興店'];
+const ALL_STORES=[...STORES,'機動人員'];
+const SC={新港店:'#185FA5',中興店:'#0F6E56',機動人員:'#7A5500'};
+const SB={新港店:'#E6F1FB',中興店:'#E1F5EE',機動人員:'#FFFBEB'};
+const STAFF_COLOR_ARGB={};
+const LEAVE_COVERED_FILL='FF26215C';
+const SKILL_OPTS=['不限','煎台丙','煎台乙','煎台甲','櫃台丙','櫃台乙','櫃台甲','包飲','實習生'];
+const TYPE_OPTS=['正職','計時','八小時全職','機動人員','跨店支援'];
+const WN=['一','二','三','四','五','六','日'];
+const HOL={'2026-1':['1'],'2026-2':['9','10','11','12','13'],'2026-4':['4'],'2026-5':['1'],'2026-10':['10']};
+const HOL_N={'2026-1-1':'元旦','2026-2-9':'春節','2026-2-10':'春節','2026-2-11':'春節','2026-2-12':'春節','2026-2-13':'春節','2026-4-4':'兒童節/清明','2026-5-1':'勞動節','2026-10-10':'國慶日'};
+let curNS='新港店',eSIdx=-1,ePIdx=-1,eSRIdx=-1,eStRIdx=-1,eCIdx=-1,adjOpen=false,generatedData=null;
+
+let needsData={新港店:[3,4,3,4,3,4,5],中興店:[2,2,2,2,2,2,3]};
+
+let openConds={
+  新港店:[{rows:[{type:'正職',skill:'不限',count:2}]}],
+  中興店:[{rows:[{type:'正職',skill:'不限',count:2}]}]
+};
+
+let staff=[
+  {name:'俊奇',store:'中興店',type:'正職',days:10,wd:6,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'佳佑',store:'中興店',type:'正職',days:10,wd:6,hd:4,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'怡伶',store:'中興店',type:'正職',days:6,wd:6,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'俊良',store:'新港店',type:'正職',days:10,wd:6,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'彥綉',store:'新港店',type:'正職',days:10,wd:6,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'翊綺',store:'新港店',type:'正職',days:10,wd:6,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'珮蓁',store:'新港店',type:'計時',days:6,wd:4,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'玥慈',store:'新港店',type:'計時',days:12,wd:8,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+  {name:'安綺',store:'新港店',type:'計時',days:24,wd:20,hd:0,sk:{g:false,gl:'丙',c:false,cl:'丙',d:false,intern:false}},
+];
+
+let pins=[
+  {name:'安綺',type:'off',dates:'',weeks:'週一、週二、週三、週四、週五'},
+  {name:'玥慈',type:'must',dates:'',weeks:'週二、週三、週四、週日'},
+  {name:'玥慈',type:'off',dates:'',weeks:'週六'},
+  {name:'翊綺',type:'off',dates:'',weeks:'週日'},
+  {name:'珮蓁',type:'off',dates:'',weeks:'週三'},
+];
+
+let adjustments=[];
+
+let storeRules=[
+];
+
+let staffRules=[
+];
+
+let crossRules=[
+  {staff:'俊奇',store:'彰水店',trigger:'固定星期',cond:'週五',condPerson:'',linkedRest:''},
+  {staff:'俊奇',store:'彰水店',trigger:'固定星期',cond:'週六',condPerson:'',linkedRest:''},
+  {staff:'珮蓁',store:'中興店',trigger:'固定星期',cond:'週六',condPerson:'',linkedRest:'佳佑'},
+];
+
+let storeGroups=[
+  {name:'溪湖區',stores:['平和店','忠孝店','培英店']},
+  {name:'伸港區',stores:['新港店','中興店']},
+  {name:'埤頭區',stores:['彰水店']},
+];
+function sameGroup(storeA,storeB){
+  if(!storeA||!storeB)return false;
+  if(storeA===storeB)return true;
+  return storeGroups.some(g=>g.stores.includes(storeA)&&g.stores.includes(storeB));
+}
+function renderStoreGroups(){
+  const el=document.getElementById('group-list');if(!el)return;
+  el.innerHTML=storeGroups.map((g,gi)=>`<div class="adj-card" style="flex-direction:column;align-items:stretch">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <input type="text" value="${g.name}" oninput="storeGroups[${gi}].name=this.value" style="font-size:10px;font-weight:600;border:none;background:transparent;width:60%;color:#1a1a1a">
+      <button class="bi" onclick="storeGroups.splice(${gi},1);renderStoreGroups()">🗑</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0">
+      ${g.stores.map((s,si)=>`<span class="bdg" style="background:#EEEDFE;color:#333">${s}<span style="cursor:pointer;margin-left:4px" onclick="storeGroups[${gi}].stores.splice(${si},1);renderStoreGroups()">×</span></span>`).join('')}
+    </div>
+    <div style="display:flex;gap:4px">
+      <input type="text" id="group-add-${gi}" placeholder="新增門市名稱" style="font-size:10px;flex:1;color:#1a1a1a;background:#fff;width:auto">
+      <button class="badd" style="padding:2px 8px" onclick="const v=document.getElementById('group-add-${gi}').value.trim();if(v){storeGroups[${gi}].stores.push(v);renderStoreGroups();}">＋</button>
+    </div>
+  </div>`).join('');
+}
+function addStoreGroup(){storeGroups.push({name:'新群組',stores:[]});renderStoreGroups();}
+
+function spin(id,dir,mn,mx){const el=document.getElementById(id);let v=parseInt(el.value||0)+dir;v=Math.max(mn,Math.min(mx,v));el.value=v;const vEl=document.getElementById(id+'-v');if(vEl)vEl.textContent=v;}
+function tog(id){const s=document.getElementById(id),c=document.getElementById('cv-'+id);s.classList.toggle('collapsed');c.textContent=s.classList.contains('collapsed')?'▼':'▲';}
+function lvOpts(c){return['丙','乙','甲'].map(l=>`<option${l===c?' selected':''}>${l}</option>`).join('');}
+function skillStr(sk){let p=[];if(sk.g)p.push('煎'+sk.gl);if(sk.c)p.push('櫃'+sk.cl);if(sk.d)p.push('包飲');if(sk.intern)p.push('實習');return p.length?p.join('・'):'—';}
+function checkHint(){const y=+document.getElementById('yr').value,m=+document.getElementById('mo').value;const dates=HOL[`${y}-${m}`]||[];const box=document.getElementById('hint');if(dates.length){document.getElementById('hint-t').textContent=`${y}年${m}月 國定假日`;document.getElementById('hint-b').textContent=`建議代入：${dates.map(d=>`${m}/${d}`).join('、')}`;box.style.display='block';}else box.style.display='none';renderHolList();}
+function autoFill(){const y=+document.getElementById('yr').value,m=+document.getElementById('mo').value;document.getElementById('hols').value=(HOL[`${y}-${m}`]||[]).join(',');renderHolList();}
+function renderHolList(){const y=+document.getElementById('yr').value,m=+document.getElementById('mo').value;const dates=document.getElementById('hols').value.split(',').map(s=>s.trim()).filter(s=>s&&!isNaN(+s));const el=document.getElementById('hol-list');if(!dates.length){el.innerHTML='';return;}el.innerHTML=`<div style="background:#f9f9f9;border-radius:4px;padding:5px 7px;margin-top:4px;border:1px solid #e0e0e0">${dates.map(d=>`<div style="display:flex;justify-content:space-between;font-size:9px;padding:1px 0"><span>${m}/${d}</span><span style="color:#888">${HOL_N[`${y}-${m}-${d}`]||''}</span></div>`).join('')}</div>`;}
+function renderNeedTabs(){document.getElementById('need-stabs').innerHTML=STORES.map(s=>`<button class="stab${s===curNS?' active':''}" onclick="switchNS('${s}')">${s}</button>`).join('');}
+function switchNS(s){curNS=s;renderNeedTabs();renderNeedTable();}
+function renderNeedTable(){const d=needsData[curNS];document.getElementById('need-table').innerHTML=`<div style="background:#f9f9f9;border-radius:6px;padding:7px;border:1px solid #e0e0e0"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">${WN.map((day,i)=>`<div><div style="font-size:8px;font-weight:500;color:${i>=5?'#A32D2D':'#666'};margin-bottom:3px">週${day}</div><select onchange="needsData['${curNS}'][${i}]=+this.value" style="font-size:10px;padding:2px 1px;text-align:center;width:100%">${[0,1,2,3,4,5].map(n=>`<option${d[i]===n?' selected':''}>${n}</option>`).join('')}</select></div>`).join('')}</div><div style="margin-top:4px;font-size:8px;color:#888;text-align:center">人（每日出勤上限）</div></div>`;}
+function genSummary(store){const c=openConds[store];if(!c||!c.length)return'尚未設定';return c.map(g=>g.rows.map(r=>`${r.count}位${r.type}${r.skill!=='不限'?'('+r.skill+')':''}`).join('＋')).join(' 或 ');}
+function renderOpenConds(){document.getElementById('open-conditions').innerHTML=STORES.map(store=>{const conds=openConds[store];const groups=conds.map((g,gi)=>`<div class="oc-group"><div class="oc-ghdr"><span class="oc-glabel">第${gi+1}組</span><button class="oc-del-g" onclick="delGroup('${store}',${gi})">刪除整組</button></div>${g.rows.map((r,ri)=>`<div class="oc-row"><select onchange="updateOC('${store}',${gi},${ri},'type',this.value)" style="font-size:9px;padding:2px 3px">${TYPE_OPTS.map(t=>`<option${t===r.type?' selected':''}>${t}</option>`).join('')}</select><select onchange="updateOC('${store}',${gi},${ri},'skill',this.value)" style="font-size:9px;padding:2px 3px">${SKILL_OPTS.map(s=>`<option${s===r.skill?' selected':''}>${s}</option>`).join('')}</select><div style="display:flex;align-items:center;gap:1px;font-size:9px">×<input type="number" value="${r.count}" min="1" max="9" style="width:24px;padding:1px 2px;font-size:9px;text-align:center" onchange="updateOC('${store}',${gi},${ri},'count',+this.value)"></div><button class="oc-del-r" onclick="delRow('${store}',${gi},${ri})">×</button></div>`).join('')}<button class="oc-add-m" onclick="addRow('${store}',${gi})">＋ 加夥伴要求</button></div>${gi<conds.length-1?'<div class="oc-or">── 或 ──</div>':''}`).join('');return`<div class="oc-store"><div class="oc-title"><div style="width:7px;height:7px;border-radius:50%;background:${SC[store]}"></div>${store} 開店條件</div><div class="oc-sum">🔑 ${genSummary(store)}</div><div class="oc-hint">滿足以下任何一組就能開店</div>${groups}<button class="oc-add-g" onclick="addGroup('${store}')">＋ 新增條件組</button></div>`;}).join('');}
+function updateOC(store,gi,ri,f,v){openConds[store][gi].rows[ri][f]=v;renderOpenConds();}
+function addRow(store,gi){openConds[store][gi].rows.push({type:'正職',skill:'不限',count:1});renderOpenConds();}
+function delRow(store,gi,ri){openConds[store][gi].rows.splice(ri,1);if(!openConds[store][gi].rows.length)openConds[store].splice(gi,1);renderOpenConds();}
+function addGroup(store){openConds[store].push({rows:[{type:'正職',skill:'不限',count:1}]});renderOpenConds();}
+function delGroup(store,gi){openConds[store].splice(gi,1);renderOpenConds();}
+function renderStaff(){document.getElementById('staff-list').innerHTML=staff.map((s,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap"><span style="font-size:10px;font-weight:600">${s.name}</span><span class="bdg" style="background:${SB[s.store]||'#FFFBEB'};color:${SC[s.store]||'#7A5500'}">${s.store==='機動人員'?'機動':s.store.replace('店','')}</span><span class="bdg" style="background:#f0f0f0;color:#555">${s.type}</span><span class="bdg" style="background:#E8F4FD;color:#0C447C">平${s.wd}↑ 假${s.hd}↑ 月${s.days}↑</span></div><div style="font-size:8px;color:#888;margin-top:1px">${skillStr(s.sk)}</div></div><div class="sa"><button class="bi" onclick="editS(${i})">✏️</button><button class="bi" onclick="delS(${i})">🗑</button></div></div>${eSIdx===i?renderES(i):''}</div>`).join('');}
+function spES(id,val,mn,mx){return`<div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('${id}',1,${mn},${mx})">▲</button><div class="spinner-val" id="${id}-v">${val}</div><button class="spin-dn" onclick="spin('${id}',-1,${mn},${mx})">▼</button></div><input type="hidden" id="${id}" value="${val}"></div>`;}
+function renderES(i){const s=staff[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input id="es-n" type="text" value="${s.name}"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="es-s">${ALL_STORES.map(st=>`<option${st===s.store?' selected':''}>${st}</option>`).join('')}</select></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>職別</label><select id="es-t"><option${s.type==='正職'?' selected':''}>正職</option><option${s.type==='計時'?' selected':''}>計時</option><option${s.type==='八小時全職'?' selected':''}>八小時全職</option><option${s.type==='機動人員'?' selected':''}>機動人員</option></select></div><div class="fg" style="margin-top:0"><label>月休上限</label><input id="es-d" type="number" value="${s.days}" min="0" max="31"></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>平日休下限</label>${spES('es-wd',s.wd,0,8)}</div><div class="fg" style="margin-top:0"><label>假日休下限</label>${spES('es-hd',s.hd,0,8)}</div></div><div style="font-size:9px;color:#7A5500;margin-top:3px;background:#FFFBEB;padding:3px 6px;border-radius:3px">平日休下限＋假日休下限 ≤ 月休上限</div><div style="margin-top:5px"><div style="font-size:9px;color:#666;margin-bottom:2px">能力分級</div><div class="skill-row"><label class="ski"><input type="checkbox" id="es-g"${s.sk.g?' checked':''}> 煎台<select id="es-gl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.gl)}</select></label><label class="ski"><input type="checkbox" id="es-c"${s.sk.c?' checked':''}> 櫃台<select id="es-cl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.cl)}</select></label><label class="ski"><input type="checkbox" id="es-dr"${s.sk.d?' checked':''}> 包飲</label><label class="ski"><input type="checkbox" id="es-in"${s.sk.intern?' checked':''}> 實習生</label></div></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveS(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelES()">取消</button></div></div>`;}
+function editS(i){eSIdx=(eSIdx===i?-1:i);renderStaff();}
+function cancelES(){eSIdx=-1;renderStaff();}
+function saveS(i){
+  const wd=+document.getElementById('es-wd').value||0,hd=+document.getElementById('es-hd').value||0,days=+document.getElementById('es-d').value||0;
+  if(wd+hd>days){alert(`平日休下限(${wd})+假日休下限(${hd})超過月休上限(${days}天)`);return;}
+  staff[i]={name:document.getElementById('es-n').value,store:document.getElementById('es-s').value,type:document.getElementById('es-t').value,days,wd,hd,sk:{g:document.getElementById('es-g').checked,gl:document.getElementById('es-gl').value,c:document.getElementById('es-c').checked,cl:document.getElementById('es-cl').value,d:document.getElementById('es-dr').checked,intern:document.getElementById('es-in').checked}};eSIdx=-1;renderStaff();renderSelects();
+}
+function delS(i){if(eSIdx===i)eSIdx=-1;staff.splice(i,1);renderStaff();renderSelects();}
+function addStaff(){
+  const name=document.getElementById('n-name').value.trim();if(!name)return;
+  const wd=+document.getElementById('n-wd').value||0,hd=+document.getElementById('n-hd').value||0,days=+document.getElementById('n-days').value||0;
+  if(wd+hd>days){alert(`平日休下限(${wd})+假日休下限(${hd})超過月休上限(${days}天)`);return;}
+  staff.push({name,store:document.getElementById('n-store').value,type:document.getElementById('n-type').value,days,wd,hd,sk:{g:document.getElementById('sk-g').checked,gl:document.getElementById('sk-gl').value,c:document.getElementById('sk-c').checked,cl:document.getElementById('sk-cl').value,d:document.getElementById('sk-d').checked,intern:document.getElementById('sk-i').checked}});
+  document.getElementById('n-name').value='';['n-wd','n-hd'].forEach(id=>{document.getElementById(id).value=0;document.getElementById(id+'-v').textContent=0;});renderStaff();renderSelects();
+}
+function renderPins(){document.getElementById('pin-list').innerHTML=pins.length?pins.map((p,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;margin-bottom:2px"><span class="bdg ${p.type==='off'?'poff':'pon'}">${p.type==='off'?'必休':'必上'}</span><span style="font-size:10px;font-weight:600">${p.name}</span></div><div style="font-size:8px;color:#888;line-height:1.5">${p.dates?`<div>📆 ${p.dates}</div>`:''}${p.weeks?`<div>📅 ${p.weeks}</div>`:''}</div></div><div class="sa"><button class="bi" onclick="editP(${i})">✏️</button><button class="bi" onclick="delP(${i})">🗑</button></div></div>${ePIdx===i?renderEP(i):''}</div>`).join(''):`<div style="font-size:9px;color:#888;padding:2px 0 5px">尚無設定</div>`;}
+function renderEP(i){const p=pins[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="ep-s">${staff.map(s=>`<option${s.name===p.name?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="ep-t"><option value="off"${p.type==='off'?' selected':''}>必休</option><option value="on"${p.type==='on'?' selected':''}>必上</option></select></div></div><div style="height:1px;background:#e0e0e0;margin:5px 0"></div><div class="fg" style="margin-top:0"><label>📆 指定日期</label><input id="ep-d" type="text" value="${p.dates||''}" placeholder="不填則略過"></div><div class="fg"><label>📅 指定星期</label><input id="ep-w" type="text" value="${p.weeks||''}" placeholder="不填則略過"></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveP(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelEP()">取消</button></div></div>`;}
+function editP(i){ePIdx=(ePIdx===i?-1:i);renderPins();}
+function cancelEP(){ePIdx=-1;renderPins();}
+function saveP(i){pins[i]={name:document.getElementById('ep-s').value,type:document.getElementById('ep-t').value,dates:document.getElementById('ep-d').value.trim(),weeks:document.getElementById('ep-w').value.trim()};ePIdx=-1;renderPins();}
+function delP(i){if(ePIdx===i)ePIdx=-1;pins.splice(i,1);renderPins();}
+function addPin(){const dates=document.getElementById('p-dates').value.trim(),weeks=document.getElementById('p-weeks').value.trim();if(!dates&&!weeks)return;pins.push({name:document.getElementById('p-staff').value,type:document.getElementById('p-type').value,dates,weeks});document.getElementById('p-dates').value='';document.getElementById('p-weeks').value='';renderPins();}
+let curAdjType=1;
+function switchAdjType(t){curAdjType=t;document.querySelectorAll('#adj-type-tabs .stab').forEach((b,i)=>b.classList.toggle('active',i+1===t));[1,2,3].forEach(i=>document.getElementById('adj-type-'+i).style.display=i===t?'block':'none');}
+function toggleAdjForm(){
+  adjOpen=!adjOpen;document.getElementById('adj-form').style.display=adjOpen?'block':'none';
+  const opts=staff.map(s=>`<option>${s.name}</option>`).join('');
+  ['adj-staff','adj2-from','adj2-to','adj3-from','adj3-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+function renderAdj(){
+  const el=document.getElementById('adj-list');
+  if(!adjustments.length){el.innerHTML=`<div style="font-size:9px;color:#888;padding:2px 0 5px">尚無微調項目</div>`;return;}
+  const tagCls={1:'#EEEDFE',2:'#E1F5EE',3:'#FAEEDA'},tagTxt={1:'同人',2:'同店',3:'跨店'};
+  el.innerHTML=adjustments.map((a,i)=>{
+    const desc=a.type===1?`${a.name}　第${a.a}日→第${a.b}日`:`${a.from}（讓）→ ${a.to}（接）　第${a.a}日→第${a.b}日`;
+    return `<div class="adj-card"><div><span class="bdg" style="background:${tagCls[a.type]};color:#333">${tagTxt[a.type]}</span><div style="font-size:9px;margin-top:2px">${desc}</div></div><button class="bi" onclick="delAdj(${i})">🗑</button></div>`;
+  }).join('');
+}
+function addAdj(){
+  if(curAdjType===1){
+    const name=document.getElementById('adj-staff').value,a=document.getElementById('adj-a').value.trim(),b=document.getElementById('adj-b').value.trim();
+    if(!a||!b)return;
+    adjustments.push({type:1,name,a,b});
+    document.getElementById('adj-a').value='';document.getElementById('adj-b').value='';
+  }else if(curAdjType===2){
+    const from=document.getElementById('adj2-from').value,to=document.getElementById('adj2-to').value;
+    const a=document.getElementById('adj2-a').value.trim(),b=document.getElementById('adj2-b').value.trim();
+    if(!a||!b||from===to)return;
+    adjustments.push({type:2,from,to,a,b});
+    document.getElementById('adj2-a').value='';document.getElementById('adj2-b').value='';
+  }else{
+    const from=document.getElementById('adj3-from').value,to=document.getElementById('adj3-to').value;
+    const a=document.getElementById('adj3-a').value.trim(),b=document.getElementById('adj3-b').value.trim();
+    if(!a||!b||from===to)return;
+    adjustments.push({type:3,from,to,a,b});
+    document.getElementById('adj3-a').value='';document.getElementById('adj3-b').value='';
+  }
+  renderAdj();
+}
+function delAdj(i){adjustments.splice(i,1);renderAdj();}
+function renderStoreRules(){document.getElementById('store-rule-list').innerHTML=storeRules.length?storeRules.map((r,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;margin-bottom:2px"><span class="bdg" style="background:${SB[r.store]||'#eee'};color:${SC[r.store]||'#333'}">${r.store}</span><span class="rtag" style="background:#FEF3E2;color:#7A4500">門市</span></div><div style="font-size:9px;line-height:1.4">${r.desc}</div></div><div class="sa"><button class="bi" onclick="editSR(${i})">✏️</button><button class="bi" onclick="delSR(${i})">🗑</button></div></div>${eSRIdx===i?renderESR(i):''}</div>`).join(''):`<div style="font-size:9px;color:#888;padding:2px 0 4px">尚無門市規則</div>`;}
+function renderESR(i){const r=storeRules[i];return`<div class="ei"><div class="fg" style="margin-top:0"><label>門市</label><select id="esr-s">${STORES.map(st=>`<option${st===r.store?' selected':''}>${st}</option>`).join('')}</select></div><div class="fg"><label>規則描述</label><input id="esr-d" type="text" value="${r.desc}"></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveSR(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelSR()">取消</button></div></div>`;}
+function editSR(i){eSRIdx=(eSRIdx===i?-1:i);renderStoreRules();}
+function cancelSR(){eSRIdx=-1;renderStoreRules();}
+function saveSR(i){storeRules[i]={store:document.getElementById('esr-s').value,desc:document.getElementById('esr-d').value};eSRIdx=-1;renderStoreRules();}
+function delSR(i){if(eSRIdx===i)eSRIdx=-1;storeRules.splice(i,1);renderStoreRules();}
+function addStoreRule(){const desc=document.getElementById('r-store-desc').value.trim();if(!desc)return;storeRules.push({store:document.getElementById('r-store').value,desc});document.getElementById('r-store-desc').value='';renderStoreRules();}
+function renderSelects(){
+  ['p-staff','r-staff','r-staff-name','cr-staff'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=staff.map(s=>`<option>${s.name}</option>`).join('');});
+  const crCp=document.getElementById('cr-cond-person');if(crCp)crCp.innerHTML=staff.map(s=>`<option>${s.name}</option>`).join('');
+  const crLr=document.getElementById('cr-linked-rest');if(crLr)crLr.innerHTML='<option value="">— 無 —</option>'+staff.map(s=>`<option>${s.name}</option>`).join('');
+}
+renderNeedTabs();renderNeedTable();renderOpenConds();renderStaff();renderPins();renderAdj();
+renderStoreRules();renderSelects();checkHint();renderStoreGroups();
+
+// 覆蓋夥伴規則相關函式
+const RULE_TYPE_DESC={'同步休假':'觸發人休假→夥伴同步休假','同步出勤':'觸發人出勤→夥伴同步出勤','其他':'自訂規則'};
+
+function renderStaffRules(){
+  document.getElementById('staff-rule-list').innerHTML=staffRules.length?staffRules.map((r,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;margin-bottom:2px"><span style="font-size:10px;font-weight:600">${r.name}</span><span class="rtag">${r.type}</span>${r.triggerPerson?`<span style="font-size:8px;color:#888">← ${r.triggerPerson}</span>`:''}</div><div style="font-size:9px;color:#555">${r.desc}</div></div><div class="sa"><button class="bi" onclick="editStR(${i})">✏️</button><button class="bi" onclick="delStR(${i})">🗑</button></div></div>${eStRIdx===i?renderEStR(i):''}</div>`).join(''):`<div style="font-size:9px;color:#888;padding:2px 0 4px">尚無夥伴規則</div>`;
+}
+function renderEStR(i){
+  const r=staffRules[i];
+  const typeOpts=['同步休假','同步出勤','其他'].map(t=>`<option value="${t}"${t===r.type?' selected':''}>${t}</option>`).join('');
+  const stateOpts=[['off','休假'],['work','出勤'],['must','必上'],['mob','機動出勤']].map(([v,l])=>`<option value="${v}"${v===r.triggerState?' selected':''}>${l}</option>`).join('');
+  return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>夥伴（被連動）</label><select id="ef-n">${staff.map(s=>`<option${s.name===r.name?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="ef-t">${typeOpts}</select></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>觸發人</label><select id="ef-tp">${staff.map(s=>`<option${s.name===r.triggerPerson?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>觸發狀態</label><select id="ef-ts">${stateOpts}</select></div></div><div class="fg"><label>描述</label><input id="ef-d" type="text" value="${r.desc}"></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveStR(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelStR()">取消</button></div></div>`;
+}
+function editStR(i){eStRIdx=(eStRIdx===i?-1:i);renderStaffRules();}
+function cancelStR(){eStRIdx=-1;renderStaffRules();}
+function saveStR(i){staffRules[i]={name:document.getElementById('ef-n').value,type:document.getElementById('ef-t').value,triggerPerson:document.getElementById('ef-tp').value,triggerState:document.getElementById('ef-ts').value,desc:document.getElementById('ef-d').value};eStRIdx=-1;renderStaffRules();}
+function delStR(i){if(eStRIdx===i)eStRIdx=-1;staffRules.splice(i,1);renderStaffRules();}
+function addStaffRule(){
+  const t=document.getElementById('r-type').value;
+  const stateMap={'同步休假':'off','同步出勤':'work','其他':'off'};
+  staffRules.push({name:document.getElementById('r-staff-name').value,type:t,triggerPerson:document.getElementById('r-staff').value,triggerState:stateMap[t]||'off',desc:document.getElementById('r-staff-desc').value.trim()||RULE_TYPE_DESC[t]||''});
+  document.getElementById('r-staff-desc').value='';renderStaffRules();
+}
+
+// 覆蓋跨店支援規則相關函式（新增 linkedRest 欄位）
+function renderCross(){
+  document.getElementById('cross-list').innerHTML=crossRules.map((r,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-bottom:2px"><span style="font-size:10px;font-weight:600">${r.staff}</span><span style="font-size:9px;color:#888">→</span><span class="bdg" style="background:${SB[r.store]||'#eee'};color:${SC[r.store]||'#333'}">${r.store}</span><span class="rtag">${r.trigger}</span>${r.linkedRest?`<span style="font-size:8px;color:#A32D2D">連動休:${r.linkedRest}</span>`:''}</div><div style="font-size:9px;line-height:1.4">${r.cond}${r.condPerson?` (${r.condPerson}休假時)`:''}</div></div><div class="sa"><button class="bi" onclick="editC(${i})">✏️</button><button class="bi" onclick="delC(${i})">🗑</button></div></div>${eCIdx===i?renderEC(i):''}</div>`).join('');
+}
+function renderEC(i){
+  const r=crossRules[i];
+  const isSpec=r.trigger==='特定人休假時';
+  return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>支援人員</label><select id="ec-s">${staff.map(s=>`<option${s.name===r.staff?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>支援門市</label><select id="ec-st">${STORES.map(st=>`<option${st===r.store?' selected':''}>${st}</option>`).join('')}</select></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>觸發條件</label><select id="ec-tr" onchange="toggleCondPerson(this.value)"><option${r.trigger==='固定星期'?' selected':''}>固定星期</option><option${isSpec?' selected':''}>特定人休假時</option><option${r.trigger==='人力不足時'?' selected':''}>人力不足時</option><option${r.trigger==='其他'?' selected':''}>其他</option></select></div><div class="fg" style="margin-top:0"><label>星期說明</label><input id="ec-c" type="text" value="${r.cond}"></div></div><div id="ec-cond-person-row" style="display:${isSpec?'block':'none'}"><div class="fg" style="margin-top:0"><label>指定人（休假時觸發）</label><select id="ec-cp">${staff.map(s=>`<option${s.name===r.condPerson?' selected':''}>${s.name}</option>`).join('')}</select></div></div><div class="fg" style="margin-top:4px"><label>連動排休人員（可空白）</label><select id="ec-lr"><option value="">— 無 —</option>${staff.map(s=>`<option value="${s.name}"${s.name===r.linkedRest?' selected':''}>${s.name}</option>`).join('')}</select></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveC(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelEC()">取消</button></div></div>`;
+}
+function toggleCondPerson(v){const el=document.getElementById('ec-cond-person-row');if(el)el.style.display=v==='特定人休假時'?'block':'none';}
+function editC(i){eCIdx=(eCIdx===i?-1:i);renderCross();}
+function cancelEC(){eCIdx=-1;renderCross();}
+function saveC(i){
+  const trigger=document.getElementById('ec-tr').value;
+  crossRules[i]={
+    staff:document.getElementById('ec-s').value,
+    store:document.getElementById('ec-st').value,
+    trigger,
+    cond:document.getElementById('ec-c').value,
+    condPerson:trigger==='特定人休假時'?(document.getElementById('ec-cp')?document.getElementById('ec-cp').value:''):'',
+    linkedRest:document.getElementById('ec-lr').value||'',
+  };
+  eCIdx=-1;renderCross();
+}
+function delC(i){if(eCIdx===i)eCIdx=-1;crossRules.splice(i,1);renderCross();}
+function addCrossRule(){
+  const trigger=document.getElementById('cr-trigger').value;
+  crossRules.push({
+    staff:document.getElementById('cr-staff').value,
+    store:document.getElementById('cr-store').value,
+    trigger,
+    cond:document.getElementById('cr-cond').value.trim(),
+    condPerson:trigger==='特定人休假時'?(document.getElementById('cr-cond-person')?document.getElementById('cr-cond-person').value:''):'',
+    linkedRest:document.getElementById('cr-linked-rest')?document.getElementById('cr-linked-rest').value:'',
+  });
+  document.getElementById('cr-cond').value='';renderCross();
+}
+function toggleNewCondPerson(){
+  const v=document.getElementById('cr-trigger').value;
+  const el=document.getElementById('cr-cond-person-row');
+  if(el)el.style.display=v==='特定人休假時'?'block':'none';
+}
+
+// ── 核心生成邏輯 v27 ── 同 v24，修正預覽+Excel格式
+const RANK={'丙':0,'乙':1,'甲':2};
+
+function matchReq(s,req,supInStore){
+  if(req.type==='正職'&&s.type!=='正職')return false;
+  if(req.type==='計時'&&s.type!=='計時')return false;
+  if(req.type==='八小時全職'&&s.type!=='八小時全職')return false;
+  if(req.type==='機動人員'&&s.type!=='機動人員')return false;
+  if(req.type==='跨店支援'&&!supInStore.includes(s.name))return false;
+  if(req.skill&&req.skill!=='不限'){
+    const sk=s.sk;
+    if(req.skill==='包飲'&&!sk.d)return false;
+    if(req.skill==='實習生'&&!sk.intern)return false;
+    if(req.skill.startsWith('煎台')){if(!sk.g||(RANK[sk.gl]||0)<(RANK[req.skill.slice(2)]||0))return false;}
+    if(req.skill.startsWith('櫃台')){if(!sk.c||(RANK[sk.cl]||0)<(RANK[req.skill.slice(2)]||0))return false;}
+  }
+  return true;
+}
+
+function checkOpen(store,d,sched,supMap){
+  const conds=openConds[store]||[];
+  if(!conds.length)return true;
+  const supInStore=supMap[store+'_'+d]||[];
+  const storeOnDuty=staff.filter(s=>s.store===store&&sched[s.name][d]!=='off'&&sched[s.name][d]!=='sup');
+  const supInPeople=supInStore.map(n=>staff.find(s=>s.name===n)).filter(Boolean);
+  const all=[...new Map([...storeOnDuty,...supInPeople].map(s=>[s.name,s])).values()];
+  return conds.some(g=>g.rows.every(req=>all.filter(s=>matchReq(s,req,supInStore)).length>=req.count));
+}
+
+function getOnDuty(store,d,sched){
+  return staff.filter(s=>s.store===store&&sched[s.name][d]!=='off'&&sched[s.name][d]!=='sup').length;
+}
+
+function usedDays(name,sched,cal){
+  return cal.filter(({d})=>sched[name][d]==='off').length;
+}
+
+function genSchedule(){
+  generatedData=null;
+  document.getElementById('btn-dl').disabled=true;
+  document.getElementById('main-body').innerHTML='<div class="ph"><div style="font-size:20px">⏳</div><div style="font-size:11px;font-weight:600">生成中...</div></div>';
+  try{
+  const y=+document.getElementById('yr').value,m=+document.getElementById('mo').value;
+  const useSat=document.getElementById('sat').checked,useSun=document.getElementById('sun').checked;
+  const holDates=document.getElementById('hols').value.split(',').map(s=>+s.trim()).filter(n=>n>0);
+  const dim=new Date(y,m,0).getDate();
+  const wdMap=[6,0,1,2,3,4,5];
+  const cal=[];
+  for(let d=1;d<=dim;d++){
+    const wd=wdMap[new Date(y,m-1,d).getDay()];
+    const isHol=holDates.includes(d)||(wd===5&&useSat)||(wd===6&&useSun);
+    cal.push({d,wd,isHol,wn:WN[wd]});
+  }
+  const sched={};const locked={};const mandatoryOff={};
+  staff.forEach(s=>{sched[s.name]={};cal.forEach(({d})=>{sched[s.name][d]='work';});});
+  // Step3: 必休／必上
+  pins.forEach(p=>{
+    cal.forEach(({d,wd})=>{
+      const dm=p.dates&&p.dates.split(',').map(x=>+x.trim()).includes(d);
+      const wm=p.weeks&&WN.some((w,i)=>p.weeks.includes('週'+w)&&wd===i);
+      if((dm||wm)&&sched[p.name]){sched[p.name][d]=p.type==='off'?'off':'must';locked[p.name+'_'+d]=true;if(p.type==='off')mandatoryOff[p.name+'_'+d]=true;}
+    });
+  });
+  // Step4: 跨店支援
+  const supMap={};
+  crossRules.forEach(cr=>{
+    if(cr.trigger==='人力不足時')return; // 改在Step8D（排休結算後）才判斷，這裡先略過
+    cal.forEach(({d,wd,wn})=>{
+      if(cr.cond&&!cr.cond.split('、').some(c=>c.includes('週'+wn)))return;
+      if(cr.trigger==='特定人休假時'){if(!cr.condPerson||!sched[cr.condPerson]||sched[cr.condPerson][d]!=='off'||!mandatoryOff[cr.condPerson+'_'+d])return;}
+      if(!sched[cr.staff]||locked[cr.staff+'_'+d]||sched[cr.staff][d]!=='work')return;
+      sched[cr.staff][d]='sup';
+      const k=cr.store+'_'+d;if(!supMap[k])supMap[k]=[];if(!supMap[k].includes(cr.staff))supMap[k].push(cr.staff);
+      if(cr.linkedRest&&sched[cr.linkedRest]&&!locked[cr.linkedRest+'_'+d]&&sched[cr.linkedRest][d]==='work'){
+        const lr=staff.find(s=>s.name===cr.linkedRest);
+        if(lr&&usedDays(cr.linkedRest,sched,cal)<lr.days){sched[cr.linkedRest][d]='off';locked[cr.linkedRest+'_'+d]=true;}
+      }
+    });
+  });
+  // Step5: 機動人員
+  staff.filter(s=>s.type==='機動人員').forEach(s=>{cal.forEach(({d})=>{if(sched[s.name][d]==='work')sched[s.name][d]='mob';});});
+  // Step6: 夥伴規則
+  staffRules.forEach(sr=>{
+    if(!sr.triggerPerson||!sched[sr.name]||!sched[sr.triggerPerson])return;
+    cal.forEach(({d})=>{
+      if(locked[sr.name+'_'+d])return;
+      const ts=sched[sr.triggerPerson][d];
+      if(sr.type==='同步休假'&&ts==='off'){
+        const s=staff.find(x=>x.name===sr.name);
+        if(s&&usedDays(sr.name,sched,cal)<s.days){sched[sr.name][d]='off';locked[sr.name+'_'+d]=true;}
+      } else if(sr.type==='同步出勤'&&(ts==='work'||ts==='must')){
+        const cur=sched[sr.name][d];if(cur==='work'||cur==='mob'){sched[sr.name][d]='must';locked[sr.name+'_'+d]=true;}
+      }
+    });
+  });
+  // Step7: 計算每天各店可排休名額
+  const slotMap={};
+  cal.forEach(({d,wd})=>{
+    STORES.forEach(store=>{
+      let lim=needsData[store]?needsData[store][wd]:0;
+      if(!lim)return;
+      const slots=Math.max(0,getOnDuty(store,d,sched)-lim);
+      if(slots>0)slotMap[store+'_'+d]=slots;
+    });
+  });
+  // Step8A: 平日出勤人力保障
+  const adjWd={};
+  STORES.forEach(store=>{
+    const ss=staff.filter(s=>s.store===store&&s.type!=='機動人員');
+    if(!ss.length)return;
+    const totalSlots=cal.filter(({d,isHol})=>!isHol&&slotMap[store+'_'+d]>0).reduce((sum,{d})=>sum+(slotMap[store+'_'+d]||0),0);
+    const wdNeeds=ss.map(s=>{
+      const alreadyWd=cal.filter(({d,isHol})=>!isHol&&sched[s.name][d]==='off').length;
+      const alreadyHd=cal.filter(({d,isHol})=>isHol&&sched[s.name][d]==='off').length;
+      const budget=Math.max(0,s.days-alreadyWd-alreadyHd);
+      return Math.min(Math.max(0,s.wd-alreadyWd),budget);
+    });
+    const totalNeed=wdNeeds.reduce((a,b)=>a+b,0);
+    let adjusted=[...wdNeeds];
+    if(totalNeed>0&&totalSlots!==totalNeed){
+      const ratio=totalSlots/totalNeed;
+      adjusted=wdNeeds.map(n=>Math.max(0,Math.round(n*ratio)));
+      let diff=totalSlots-adjusted.reduce((a,b)=>a+b,0);
+      for(let i=0;i<adjusted.length&&diff!==0;i++){if(diff>0){adjusted[i]++;diff--;}else if(diff<0&&adjusted[i]>0){adjusted[i]--;diff++;}}
+    }
+    ss.forEach((s,i)=>{adjWd[s.name]=adjusted[i];});
+  });
+  // Step8B: 假日休
+  staff.forEach(s=>{
+    if(!STORES.includes(s.store))return;
+    if(s.type==='計時'||s.type==='機動人員')return;
+    const alreadyHd=cal.filter(({d,isHol})=>isHol&&sched[s.name][d]==='off').length;
+    let needHd=Math.max(0,s.hd-alreadyHd);if(needHd<=0)return;
+    const avail=cal.filter(({d,isHol})=>isHol&&sched[s.name][d]==='work'&&!locked[s.name+'_'+d]);
+    const step=avail.length>needHd?Math.floor(avail.length/needHd):1;
+    let lastIdx=-1;
+    for(let i=0;i<avail.length&&needHd>0;i++){
+      if(lastIdx>=0&&i-lastIdx<Math.max(1,step-1))continue;
+      const {d}=avail[i];if(usedDays(s.name,sched,cal)>=s.days)break;
+      sched[s.name][d]='off';if(!checkOpen(s.store,d,sched,supMap)){sched[s.name][d]='work';continue;}needHd--;lastIdx=i;
+    }
+    for(let i=0;i<avail.length&&needHd>0;i++){
+      const {d}=avail[i];if(sched[s.name][d]!=='work')continue;if(usedDays(s.name,sched,cal)>=s.days)break;
+      sched[s.name][d]='off';if(!checkOpen(s.store,d,sched,supMap)){sched[s.name][d]='work';continue;}needHd--;
+    }
+  });
+  // Step8C: 平日休交錯分配
+  STORES.forEach(store=>{
+    const ss=staff.filter(s=>s.store===store&&s.type!=='機動人員');
+    if(!ss.length)return;
+    const needs={};ss.forEach(s=>{needs[s.name]=adjWd[s.name]||0;});
+    const wdSlotDays=cal.filter(({d,isHol})=>!isHol&&slotMap[store+'_'+d]>0);
+    for(const {d} of wdSlotDays){
+      let daySlots=slotMap[store+'_'+d]||0;
+      while(daySlots>0){
+        const eligible=ss.filter(s=>sched[s.name][d]==='work'&&!locked[s.name+'_'+d]&&needs[s.name]>0&&usedDays(s.name,sched,cal)<s.days);
+        if(!eligible.length)break;
+        eligible.sort((a,b)=>needs[b.name]!==needs[a.name]?needs[b.name]-needs[a.name]:usedDays(a.name,sched,cal)-usedDays(b.name,sched,cal));
+        let assigned=false;
+        for(const s of eligible){
+          sched[s.name][d]='off';
+          if(checkOpen(store,d,sched,supMap)){needs[s.name]--;daySlots--;assigned=true;break;}
+          sched[s.name][d]='work';
+        }
+        if(!assigned)break;
+      }
+    }
+    ss.forEach(s=>{
+      let rem=needs[s.name]||0;if(rem<=0)return;
+      const avail=cal.filter(({d,isHol})=>!isHol&&sched[s.name][d]==='work'&&!locked[s.name+'_'+d]);
+      for(const {d} of avail){
+        if(rem<=0)break;if(usedDays(s.name,sched,cal)>=s.days)break;
+        sched[s.name][d]='off';if(!checkOpen(store,d,sched,supMap)){sched[s.name][d]='work';continue;}rem--;needs[s.name]--;
+      }
+    });
+  });
+  // 機動人員月休
+  staff.filter(s=>s.type==='機動人員'&&s.days>0).forEach(s=>{
+    let rem=Math.max(0,s.days-usedDays(s.name,sched,cal));if(rem<=0)return;
+    const wdAvail=cal.filter(({d,isHol})=>!isHol&&sched[s.name][d]==='mob'&&!locked[s.name+'_'+d]);
+    const wdStep=wdAvail.length>rem?Math.floor(wdAvail.length/rem):1;
+    for(let i=0;i<wdAvail.length&&rem>0;i+=wdStep){if(usedDays(s.name,sched,cal)>=s.days)break;sched[s.name][wdAvail[i].d]='off';rem--;}
+    if(rem>0){
+      const hdAvail=cal.filter(({d,isHol})=>isHol&&sched[s.name][d]==='mob'&&!locked[s.name+'_'+d]);
+      const hdStep=hdAvail.length>rem?Math.floor(hdAvail.length/rem):1;
+      for(let i=0;i<hdAvail.length&&rem>0;i+=hdStep){if(usedDays(s.name,sched,cal)>=s.days)break;sched[s.name][hdAvail[i].d]='off';rem--;}
+    }
+  });
+  // Step8E: 最終人力檢查補強——避免多人各自被批准休假，疊加後仍導致人力不足卻沒被擋下
+  STORES.forEach(store=>{
+    cal.forEach(({d})=>{
+      if(checkOpen(store,d,sched,supMap))return;
+      const offToday=staff.filter(s=>s.store===store&&sched[s.name][d]==='off'&&!locked[s.name+'_'+d]);
+      if(!offToday.length)return;
+      offToday.sort((a,b)=>usedDays(b.name,sched,cal)-usedDays(a.name,sched,cal));
+      for(const s of offToday){
+        sched[s.name][d]='work';
+        if(checkOpen(store,d,sched,supMap))break;
+      }
+    });
+  });
+  // Step8D: 人力不足時跨店支援（排休結算後，依實際出勤人數跟開店條件最低人力比較）
+  crossRules.filter(cr=>cr.trigger==='人力不足時').forEach(cr=>{
+    cal.forEach(({d,wd,wn})=>{
+      if(cr.cond&&!cr.cond.split('、').some(c=>c.includes('週'+wn)))return;
+      const minNeed=needsData[cr.store]?needsData[cr.store][wd]:0;
+      if(!minNeed||getOnDuty(cr.store,d,sched)>=minNeed)return;
+      if(!sched[cr.staff]||locked[cr.staff+'_'+d]||sched[cr.staff][d]!=='work')return;
+      sched[cr.staff][d]='sup';
+      const k=cr.store+'_'+d;if(!supMap[k])supMap[k]=[];if(!supMap[k].includes(cr.staff))supMap[k].push(cr.staff);
+      if(cr.linkedRest&&sched[cr.linkedRest]&&!locked[cr.linkedRest+'_'+d]&&sched[cr.linkedRest][d]==='work'){
+        const lr=staff.find(s=>s.name===cr.linkedRest);
+        if(lr&&usedDays(cr.linkedRest,sched,cal)<lr.days){sched[cr.linkedRest][d]='off';locked[cr.linkedRest+'_'+d]=true;}
+      }
+    });
+  });
+  // Step9: 微調
+  adjustments.forEach(a=>{
+    const da=+a.a,db=+a.b;if(!da||!db)return;
+    if(a.type===1){
+      if(sched[a.name]){const tmp=sched[a.name][da];sched[a.name][da]=sched[a.name][db];sched[a.name][db]=tmp;}
+    }else if(a.type===3){
+      if(sched[a.from]&&sched[a.to]){
+        sched[a.from][da]='sup';sched[a.to][db]='off';
+        const toStaff=staff.find(s=>s.name===a.to);
+        if(toStaff){const k=toStaff.store+'_'+da;if(!supMap[k])supMap[k]=[];if(!supMap[k].includes(a.from))supMap[k].push(a.from);}
+      }
+    }else{
+      if(sched[a.from]&&sched[a.to]){sched[a.from][da]='work';sched[a.to][db]='off';}
+    }
+  });
+
+  generatedData={sched,cal,y,m,supMap,mandatoryOff};
+  reapplyManualAdjustments();
+  document.getElementById('btn-dl').disabled=false;
+  if(maxUnlocked<2){maxUnlocked=2;renderTopnav();}
+
+  // 衝突偵測
+  const conflicts=[];
+  staff.forEach(s=>{
+    if(s.days>0&&(s.wd+s.hd)>s.days)conflicts.push({type:'error',msg:`${s.name}：平日休下限(${s.wd})+假日休下限(${s.hd})超過月休上限(${s.days}天)`});
+    const used=usedDays(s.name,sched,cal);
+    if(used>s.days&&s.days>0)conflicts.push({type:'error',msg:`${s.name}：實際休假${used}天超過月休上限${s.days}天`});
+    if(!STORES.includes(s.store))return;
+    const actHd=cal.filter(({d,isHol})=>isHol&&sched[s.name][d]==='off').length;
+    const actWd=cal.filter(({d,isHol})=>!isHol&&sched[s.name][d]==='off').length;
+    if(actHd<s.hd)conflicts.push({type:'warn',msg:`${s.name}：假日休下限${s.hd}天，實際排到${actHd}天`});
+    if(actWd<s.wd)conflicts.push({type:'warn',msg:`${s.name}：平日休下限${s.wd}天，實際排到${actWd}天`});
+  });
+  const pinNames=[...new Set(pins.map(p=>p.name))];
+  pinNames.forEach(name=>{
+    const offs=pins.filter(p=>p.name===name&&p.type==='off'&&p.weeks);
+    const ons=pins.filter(p=>p.name===name&&p.type==='on'&&p.weeks);
+    offs.forEach(o=>ons.forEach(n=>{WN.forEach(w=>{if(o.weeks&&n.weeks&&o.weeks.includes('週'+w)&&n.weeks.includes('週'+w))conflicts.push({type:'error',msg:`${name}：必休/必上在週${w}衝突`});});}));
+  });
+  STORES.forEach(store=>{
+    const failDays=cal.filter(({d})=>!checkOpen(store,d,sched,supMap));
+    if(failDays.length)conflicts.push({type:'warn',msg:`${store}：${failDays.slice(0,4).map(({d,wn})=>`${d}(${wn})`).join('、')}${failDays.length>4?`…等共${failDays.length}天`:''}無法滿足開店條件`});
+    cal.forEach(({d,wd})=>{
+      const lim=needsData[store]?needsData[store][wd]:0;if(!lim)return;
+      const onCnt=getOnDuty(store,d,sched);
+      if(onCnt>lim)conflicts.push({type:'warn',msg:`${store} ${d}日(週${WN[wd]})：出勤${onCnt}人超過上限${lim}人`});
+    });
+  });
+
+  renderPreview(sched,cal,supMap,conflicts,mandatoryOff);
+  }catch(e){
+    document.getElementById('main-body').innerHTML=`<div class="conf-box"><div class="conf-title">❌ 生成失敗</div><div class="conf-item"><span>⚠️</span><span>${e.message||'未知錯誤'}</span></div></div>`;
+    console.error(e);
+  }
+}
+
+let manualAdjustments=[];
+let dragSrc=null;
+function dragCellStart(ev,name,d){dragSrc={name,d};ev.dataTransfer.setData('text/plain',name+'_'+d);}
+function allowDrop(ev){ev.preventDefault();ev.currentTarget.classList.add('drag-over');}
+function dragLeaveCell(ev){ev.currentTarget.classList.remove('drag-over');}
+function dropStatus(ev,name,d){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  if(!dragSrc||!generatedData||!generatedData.sched[name])return;
+  const{name:fromName,d:fromD}=dragSrc;dragSrc=null;
+  if(fromName===name&&fromD===d)return;
+  if(!generatedData.sched[fromName])return;
+  if(!confirm(`此調整會將「${fromName}」第${fromD}日 與「${name}」第${d}日 的班表狀態互換，可能影響相關統計，是否確定套用？`))return;
+  applyManualSwap(fromName,fromD,name,d,true);
+}
+function applyManualSwap(name1,d1,name2,d2,record){
+  const{sched,supMap,mandatoryOff}=generatedData;
+  if(!sched[name1]||!sched[name2])return;
+  const tmpSt=sched[name1][d1];sched[name1][d1]=sched[name2][d2];sched[name2][d2]=tmpSt;
+  const k1a=name1+'_'+d1,k1b=name2+'_'+d2;
+  const tmpMust=!!mandatoryOff[k1a];
+  if(mandatoryOff[k1b])mandatoryOff[k1a]=true;else delete mandatoryOff[k1a];
+  if(tmpMust)mandatoryOff[k1b]=true;else delete mandatoryOff[k1b];
+  STORES.forEach(store=>{
+    const ka=store+'_'+d1,kb=store+'_'+d2;
+    if(supMap[ka]){const idx=supMap[ka].indexOf(name1);if(idx>-1)supMap[ka].splice(idx,1);}
+    if(supMap[kb]){const idx=supMap[kb].indexOf(name2);if(idx>-1)supMap[kb].splice(idx,1);}
+  });
+  if(record){
+    const{y,m}=generatedData;
+    manualAdjustments.push({y,m,name1,d1,name2,d2});
+  }
+  renderPreview(sched,generatedData.cal,supMap,[],mandatoryOff);
+}
+function reapplyManualAdjustments(){
+  if(!generatedData||!manualAdjustments.length)return;
+  const{y,m}=generatedData;
+  const toApply=manualAdjustments.filter(a=>a.y===y&&a.m===m);
+  if(toApply.length!==manualAdjustments.length){manualAdjustments=[];return;}
+  toApply.forEach(a=>applyManualSwap(a.name1,a.d1,a.name2,a.d2,false));
+}
+function renderPreview(sched,cal,supMap,conflicts,mandatoryOff){
+  const CLS={off:'c-off',sup:'c-sup',mob:'c-mob',must:'c-must',work:'c-work'};
+  const TXT={off:'休',sup:'支',mob:'機',must:'上',work:''};
+  // 週六=綠色背景，週日=粉紅色背景
+  function thStyle(wd){
+    if(wd===5)return'background:#D4EDDA;color:#155724;'; // 週六綠
+    if(wd===6)return'background:#FADDE1;color:#8B0000;'; // 週日粉紅
+    return'background:#f5f5f5;color:#333;';
+  }
+  const buildTable=(members,storeName)=>{
+    const cols=cal.map(({d,wn,wd})=>`<th style="min-width:26px;padding:3px 2px;font-size:9px;${thStyle(wd)}">${d}<br>週${wn}</th>`).join('');
+    const rows=members.map(s=>{
+      const cells=cal.map(({d,wd})=>{
+        const st=sched[s.name]?sched[s.name][d]:'work';
+        let bg='';
+        if(wd===5)bg='background:#E8F5E9;'; // 週六淡綠底
+        if(wd===6)bg='background:#FFF0F3;'; // 週日淡粉底
+        const isMust=st==='off'&&mandatoryOff&&mandatoryOff[s.name+'_'+d];
+        return`<td class="${CLS[st]||'c-work'}" style="${bg}padding:3px 2px;font-size:9px;text-align:center;${isMust?'font-weight:700;':''}" draggable="true" ondragstart="dragCellStart(event,'${s.name}',${d})" ondragover="allowDrop(event)" ondragleave="dragLeaveCell(event)" ondrop="dropStatus(event,'${s.name}',${d})">${TXT[st]||''}</td>`;
+      }).join('');
+      return`<tr><td style="font-size:9px;font-weight:600;white-space:nowrap;text-align:left;padding:3px 5px;min-width:32px;border-right:2px solid #ccc;position:sticky;left:0;background:#fff;z-index:1">${s.name}</td>${cells}</tr>`;
+    }).join('');
+    let supRow='';
+    if(storeName&&cal.some(({d})=>(supMap[storeName+'_'+d]||[]).length>0)){
+      const cells=cal.map(({d,wd})=>{
+        const ns=(supMap[storeName+'_'+d]||[]).join(',');
+        let bg=wd===5?'background:#E8F5E9;':wd===6?'background:#FFF0F3;':'';
+        return`<td style="background:#EDE8FF;color:#3C3489;font-size:7px;font-style:italic;padding:2px;text-align:center;${bg}">${ns}</td>`;
+      }).join('');
+      supRow=`<tr><td style="font-size:7px;color:#3C3489;padding:2px 5px;font-weight:600;white-space:nowrap;border-right:2px solid #ccc;position:sticky;left:0;background:#EDE8FF;z-index:1">支援↑</td>${cells}</tr>`;
+    }
+    return`<div style="overflow-x:auto;border:1px solid #e0e0e0;border-radius:6px"><table class="ptbl" style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;min-width:32px;padding:3px 5px;position:sticky;left:0;background:#f5f5f5;z-index:2;border-right:2px solid #ccc">姓名</th>${cols}</tr></thead><tbody>${rows}${supRow}</tbody></table></div>`;
+  };
+  const mobStaff=staff.filter(s=>s.type==='機動人員');
+  const storeGroups=STORES.map(store=>({store,members:staff.filter(s=>s.store===store)}));
+  document.getElementById('main-body').innerHTML=`
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#D4EDDA"></div>休</div>
+      <div class="leg"><div class="leg-dot" style="background:#D4EDDA;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:7px;color:#155724">休</div>必休</div>
+      <div class="leg"><div class="leg-dot" style="background:#D8D3F5"></div>支（跨店）</div>
+      <div class="leg"><div class="leg-dot" style="background:#FFF3C4"></div>機（機動）</div>
+      <div class="leg"><div class="leg-dot" style="background:#F5ECD7"></div>上（必上）</div>
+      <div class="leg"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>出勤</div>
+      <div class="leg"><div class="leg-dot" style="background:#D4EDDA;border:1px solid #90C090"></div>週六</div>
+      <div class="leg"><div class="leg-dot" style="background:#FADDE1;border:1px solid #E0A0A8"></div>週日</div>
+    </div>
+    <div style="margin:4px 0 8px;padding:6px 8px;background:#FAFAFC;border:1px dashed #ccc;border-radius:6px">
+      <div style="font-size:8px;color:#888">🖐️ 直接拖曳格子到另一格可互換兩天的班表狀態（重新生成同年月會自動保留此調整，年月變更則清空）</div>
+    </div>
+    ${conflicts.length?`<div class="conf-box"><div class="conf-title">⚠ 發現 ${conflicts.length} 項需注意</div>${conflicts.map(c=>`<div class="conf-item"><span>${c.type==='error'?'❌':'⚠️'}</span><span>${c.msg}</span></div>`).join('')}</div>`:`<div class="ok-box">✅ 設定無明顯衝突，班表已生成</div>`}
+    ${mobStaff.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FFFBEB;border:1px solid #F5C842">🔄 機動人員</div>${buildTable(mobStaff,'')}</div>`:''}
+    ${storeGroups.map(({store,members})=>`<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]}"><div style="width:7px;height:7px;border-radius:50%;background:${SC[store]}"></div>${store}</div>${buildTable(members,store)}</div>`).join('')}
+    <div style="font-size:9px;color:#888;text-align:center;margin-top:7px">顯示整月・修改設定後可重新生成</div>`;
+}
+
+function buildWeeks(cal){
+  const weeks=[];let cur=new Array(7).fill(null);
+  cal.forEach(day=>{cur[day.wd]=day;if(day.wd===6){weeks.push(cur);cur=new Array(7).fill(null);}});
+  if(cur.some(x=>x))weeks.push(cur);
+  return weeks;
+}
+function parseLunarNotes(){
+  const raw=(document.getElementById('lunar-notes')&&document.getElementById('lunar-notes').value)||'';
+  const map={};
+  raw.split(',').forEach(pair=>{
+    const idx=pair.indexOf(':');if(idx<0)return;
+    const dd=pair.slice(0,idx).trim(),txt=pair.slice(idx+1).trim();
+    if(dd&&txt)map[+dd]=txt;
+  });
+  return map;
+}
+function offFillFor(name){return STAFF_COLOR_ARGB[name]||'FFD4EDDA';}
+function findSupTargetStore(supMap,name,d){
+  for(const k in supMap){
+    const idx=k.lastIndexOf('_');
+    if(idx<0||+k.slice(idx+1)!==d)continue;
+    if(supMap[k].includes(name))return k.slice(0,idx);
+  }
+  return'';
+}
+function weekdayHeaderFill(wd){if(wd===3||wd===5)return'FF90EE90';if(wd===6)return'FFFFB6C1';return'FFF0F0F0';}
+function weekdayAccentColor(wd){if(wd===3)return'FFBA7517';if(wd===5)return'FF3B6D11';if(wd===6)return'FFA32D2D';return'FF2C2C2A';}
+function weekdayBorderColor(wd){if(wd===3)return'FFBA7517';if(wd===5)return'FF97C459';if(wd===6)return'FFF09595';return'FFE5E2DA';}
+function exlFill(argb){return argb?{type:'pattern',pattern:'solid',fgColor:{argb}}:undefined;}
+function downloadWorkbook(wb,filename){
+  wb.xlsx.writeBuffer().then(buf=>{
+    const blob=new Blob([buf],{type:'application/octet-stream'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+function buildCalendarWorkbookSheet(wb,sheetName,home,cal,sched,supMap,lunarMap,bottomNotes,linkFn,includeOverlay,mandatoryOff){
+  const isStore=STORES.includes(sheetName);
+  let visitors=[];
+  if(isStore){
+    const set=new Set();
+    cal.forEach(({d})=>{(supMap[sheetName+'_'+d]||[]).forEach(n=>{if(!home.some(h=>h.name===n))set.add(n);});});
+    visitors=[...set];
+  }
+  const tempRows=isStore&&includeOverlay?supportStaff.filter(s=>Object.values(supportSchedule[s.name]||{}).some(e=>(e.targetStore||s.store)===sheetName)):[];
+  const weeks=buildWeeks(cal);
+  const ws=wb.addWorksheet(sheetName.replace('店',''));
+  ws.columns=Array.from({length:7},()=>({width:16}));
+  ws.views=[{state:'frozen',ySplit:1}];
+  ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.3,right:0.3,top:0.4,bottom:0.4,header:0.3,footer:0.3},printTitlesRow:'1:1'};
+  const THIN_BORDER={style:'thin',color:{argb:'FFF0F0F0'}};
+  function setCell(r,c,v,fill,fontColor,bold){
+    const cell=ws.getCell(r+1,c+1);
+    cell.value=v||'';
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    if(fill)cell.fill=exlFill(fill);
+    cell.font={name:'微軟正黑體',bold:!!bold,color:fontColor?{argb:fontColor}:undefined};
+    cell.border={top:THIN_BORDER,left:THIN_BORDER,bottom:THIN_BORDER,right:THIN_BORDER};
+  }
+  const WDN=['一','二','三','四定食日','五','六','日'];
+  let r=0;
+  WDN.forEach((t,c)=>{
+    const cell=ws.getCell(r+1,c+1);
+    cell.value=t;
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.font={name:'微軟正黑體',bold:true,color:{argb:weekdayAccentColor(c)}};
+    cell.border={bottom:{style:'medium',color:{argb:weekdayBorderColor(c)}}};
+  });
+  r++;
+  weeks.forEach(week=>{
+    week.forEach((day,c)=>{
+      if(!day){setCell(r,c,'',undefined);return;}
+      const cell=ws.getCell(r+1,c+1);
+      const note=lunarMap[day.d];
+      const accent=weekdayAccentColor(day.wd);
+      cell.value=note?{richText:[{font:{name:'微軟正黑體',bold:true,size:11,color:{argb:accent}},text:String(day.d)+' '},{font:{name:'微軟正黑體',size:8,color:{argb:'FF888780'}},text:note}]}:String(day.d);
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      if(!note)cell.font={name:'微軟正黑體',bold:true,color:{argb:accent}};
+      cell.border={top:THIN_BORDER,left:THIN_BORDER,right:THIN_BORDER,bottom:{style:'thin',color:{argb:weekdayBorderColor(day.wd)}}};
+    });
+    r++;
+    home.forEach(s=>{
+      week.forEach((day,c)=>{
+        if(!day){setCell(r,c,'',undefined);return;}
+        const st=sched[s.name]?sched[s.name][day.d]:'work';
+        if(st==='off'){const linked=linkFn&&linkFn(s.name,day.d);const isMust=mandatoryOff&&mandatoryOff[s.name+'_'+day.d];setCell(r,c,linked?`${s.name}休\n→${linked}補`:`${s.name}休`,linked?LEAVE_COVERED_FILL:offFillFor(s.name),'FFFFFFFF',!!linked||!!isMust);}
+        else if(st==='sup'){const target=findSupTargetStore(supMap,s.name,day.d);setCell(r,c,`${s.name}支援${target}`,'FFFAEEDA','FF633806',false);}
+        else if(st==='must')setCell(r,c,s.name,'FFF5ECD7',undefined,false);
+        else if(st==='mob')setCell(r,c,s.name,undefined,'FF185FA5',false);
+        else setCell(r,c,s.type==='計時'?`${s.name}9.5h`:s.name,undefined,undefined,false);
+      });
+      r++;
+    });
+    visitors.forEach(vname=>{
+      const vstaff=staff.find(x=>x.name===vname);
+      const isExternal=vstaff&&!sameGroup(vstaff.store,sheetName);
+      week.forEach((day,c)=>{
+        if(!day){setCell(r,c,'',undefined);return;}
+        const isHere=(supMap[sheetName+'_'+day.d]||[]).includes(vname);
+        setCell(r,c,isHere?(isExternal?`${vname}9.5h`:vname):'',undefined,isHere?'FF185FA5':undefined,false);
+      });
+      r++;
+    });
+    tempRows.forEach(s=>{
+      week.forEach((day,c)=>{
+        if(!day){setCell(r,c,'',undefined);return;}
+        const e=supportSchedule[s.name]&&supportSchedule[s.name][day.d];
+        if(!e||(e.targetStore||s.store)!==sheetName){setCell(r,c,'',undefined);return;}
+        setCell(r,c,`${s.name}貼班${e.hours.toFixed(1)}h${e.link?`\n補${e.link}`:''}`,'FFFAEEDA','FF633806',false);
+      });
+      r++;
+    });
+    r++;
+  });
+  if(bottomNotes.length){
+    r++;
+    bottomNotes.forEach(line=>{
+      setCell(r,0,line,undefined,undefined,false);
+      ws.mergeCells(r+1,1,r+1,7);
+      const c=ws.getCell(r+1,1);
+      c.alignment={horizontal:'left',vertical:'middle',wrapText:false};
+      r++;
+    });
+  }
+}
+function downloadExcel(){
+  if(!generatedData){alert('請先生成假表');return;}
+  const {sched,cal,y,m,supMap,mandatoryOff}=generatedData;
+  const lunarMap=parseLunarNotes();
+  const bottomNotes=((document.getElementById('bottom-notes')&&document.getElementById('bottom-notes').value)||'').split('\n').filter(Boolean);
+  const wb=new ExcelJS.Workbook();
+  [...STORES.map(store=>({name:store,home:staff.filter(s=>s.store===store)})),{name:'機動人員',home:staff.filter(s=>s.type==='機動人員')}].forEach(({name,home})=>{
+    if(!home.length)return;
+    buildCalendarWorkbookSheet(wb,name,home,cal,sched,supMap,lunarMap,bottomNotes,null,false,mandatoryOff);
+  });
+  downloadWorkbook(wb,`伸港排班_${y}年${m}月_初假表.xlsx`);
+}
+
+// ── 第二頁：貼班人員（次假表） ──
+let supportStaff=[]; // {name,store,wage}
+let supportSchedule={}; // supportSchedule[name][d]={start,end,break,hours}
+let modalCtx=null; // {name,d}
+let page2Generated=false;
+
+function renderPage2(){
+  if(!generatedData){document.getElementById('page2-panel').innerHTML='<div style="padding:20px;color:#999;font-size:10px">請先完成第一頁初假表</div>';return;}
+  const {cal}=generatedData;
+  const listHtml=supportStaff.length?supportStaff.map((s,i)=>`<div class="card" style="margin-bottom:6px"><div class="ct"><div><span style="font-size:11px;font-weight:600">${s.name}</span><span style="font-size:9px;color:#888;margin-left:6px">${s.store}・$${s.wage}/hr</span></div><button class="bi" onclick="delSupStaff(${i})">🗑</button></div></div>`).join(''):'<div style="font-size:9px;color:#888;padding:4px 0">尚無貼班人員</div>';
+
+  const calTables=supportStaff.map(s=>{
+    const cols=cal.map(({d,wn})=>`<th>${d}<br>週${wn}</th>`).join('');
+    const cells=cal.map(({d})=>{
+      const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+      const txt=e?e.hours.toFixed(1)+'h':'＋';
+      return `<td class="spcell${e?' filled':''}" onclick="openSupModal('${s.name}',${d})">${txt}</td>`;
+    }).join('');
+    return `<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:600;margin-bottom:4px">${s.name} <span style="color:#888;font-size:9px">${s.store}・$${s.wage}/hr</span></div><div style="overflow-x:auto"><table class="sptbl"><thead><tr><th style="width:50px">日期</th>${cols}</tr></thead><tbody><tr><td>時段</td>${cells}</tr></tbody></table></div></div>`;
+  }).join('');
+
+  document.getElementById('page2-panel').innerHTML=`
+    <div class="sec"><div class="sh"><div class="st">🏷️ 臨時貼班人員</div></div><div class="sb">
+      ${listHtml}
+      <div class="abox"><h4>＋ 新增貼班人員</h4>
+        <div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input type="text" id="sp-name" placeholder="姓名"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="sp-store">${ALL_STORES.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+        <div class="fg"><label>時薪</label><input type="number" id="sp-wage" placeholder="例：196" min="0"></div>
+        <button class="badd" onclick="addSupStaff()">確認新增</button>
+      </div>
+    </div></div>
+    <div class="sec"><div class="sh"><div class="st">🗓 貼班時段安排</div></div><div class="sb">
+      ${supportStaff.length?calTables:'<div style="font-size:9px;color:#888">請先新增貼班人員</div>'}
+    </div></div>
+  `;
+}
+function addSupStaff(){
+  const name=document.getElementById('sp-name').value.trim();
+  const wage=+document.getElementById('sp-wage').value||0;
+  if(!name||!wage){alert('請填寫姓名與時薪');return;}
+  supportStaff.push({name,store:document.getElementById('sp-store').value,wage});
+  supportSchedule[name]={};
+  renderPage2();
+}
+function delSupStaff(i){
+  const name=supportStaff[i].name;
+  delete supportSchedule[name];
+  supportStaff.splice(i,1);
+  renderPage2();
+}
+function openSupModal(name,d){
+  modalCtx={name,d};
+  const e=(supportSchedule[name]&&supportSchedule[name][d])||{};
+  const store=supportStaff.find(s=>s.name===name).store;
+  const origOff=generatedData&&STORES.includes(store)&&generatedData.cal.length&&isOrigOff(store,d);
+  const hourOpts=h=>Array.from({length:24},(_,i)=>`<option${e[h+'H']==i?' selected':''}>${String(i).padStart(2,'0')}</option>`).join('');
+  const minOpts=h=>['00','15','30','45'].map(mm=>`<option${e[h+'M']==mm?' selected':''}>${mm}</option>`).join('');
+  document.body.insertAdjacentHTML('beforeend',`
+    <div class="modal-bg" id="sup-modal" style="position:fixed">
+      <div class="modal-box">
+        <h4>貼班時段 — ${name} ${generatedData.m}月${d}日</h4>
+        ${origOff?`<div class="modal-warn">⚠️ 此日原為${store}休，填入時段後將視為貼班支援</div>`:''}
+        <div class="fg" style="margin-top:0"><label>上班時間（24小時制）</label></div>
+        <div class="modal-row"><select id="sm-sh">${hourOpts('s')}</select>:<select id="sm-sm">${minOpts('s')}</select></div>
+        <div class="fg"><label>下班時間（跨日就填隔天的時，例 02:00）</label></div>
+        <div class="modal-row"><select id="sm-eh">${hourOpts('e')}</select>:<select id="sm-em">${minOpts('e')}</select></div>
+        <div class="fg"><label>休息時間（分鐘）</label><input type="number" id="sm-break" value="${e.break||0}" min="0" step="5"></div>
+        <div class="modal-hrs" id="sm-hrs">實際工時：— 小時</div>
+        <div class="fg"><label>連動請假對象（情境二，可空白）</label><select id="sm-link"><option value="">— 無（單純貼班） —</option>${staff.map(s=>`<option${e.link===s.name?' selected':''}>${s.name}</option>`).join('')}</select></div>
+        <div class="fg"><label>貼班門市（顯示於哪個門市區塊下方）</label><select id="sm-target-store">${STORES.map(st=>`<option${(e.targetStore||(STORES.includes(store)?store:STORES[0]))===st?' selected':''}>${st}</option>`).join('')}</select></div>
+        <div class="modal-btns">
+          <button class="mb-save" onclick="saveSupModal()">儲存</button>
+          <button class="mb-clear" onclick="clearSupModal()">清除</button>
+          <button class="mb-cancel" onclick="closeSupModal()">取消</button>
+        </div>
+      </div>
+    </div>`);
+  ['sm-sh','sm-sm','sm-eh','sm-em','sm-break'].forEach(id=>document.getElementById(id).addEventListener('change',calcSupHrs));
+  calcSupHrs();
+}
+function isOrigOff(store,d){
+  const s=generatedData.sched;
+  return Object.values(s).some(()=>false); // 占位：原始休假判定可依需求擴充
+}
+function calcSupHrs(){
+  const sh=+document.getElementById('sm-sh').value,sm=+document.getElementById('sm-sm').value;
+  const eh=+document.getElementById('sm-eh').value,em=+document.getElementById('sm-em').value;
+  const brk=+document.getElementById('sm-break').value||0;
+  let startMin=sh*60+sm,endMin=eh*60+em;
+  if(endMin<=startMin)endMin+=24*60;
+  const hrs=Math.max(0,(endMin-startMin-brk)/60);
+  document.getElementById('sm-hrs').textContent=`實際工時：${hrs.toFixed(1)} 小時`;
+  return hrs;
+}
+function saveSupModal(){
+  const hrs=calcSupHrs();
+  const {name,d}=modalCtx;
+  const oldEntry=supportSchedule[name]&&supportSchedule[name][d];
+  const oldLink=oldEntry?oldEntry.link:'';
+  const newLink=document.getElementById('sm-link').value||'';
+  if(!supportSchedule[name])supportSchedule[name]={};
+  supportSchedule[name][d]={
+    sH:document.getElementById('sm-sh').value,sM:document.getElementById('sm-sm').value,
+    eH:document.getElementById('sm-eh').value,eM:document.getElementById('sm-em').value,
+    break:+document.getElementById('sm-break').value||0,
+    hours:hrs,
+    link:newLink,
+    targetStore:document.getElementById('sm-target-store').value
+  };
+  if(generatedData&&generatedData.sched){
+    if(oldLink&&oldLink!==newLink&&generatedData.sched[oldLink]&&generatedData.sched[oldLink][d]==='off'){
+      generatedData.sched[oldLink][d]='work';
+    }
+    if(newLink&&generatedData.sched[newLink]){
+      generatedData.sched[newLink][d]='off';
+    }
+  }
+  closeSupModal();renderPage2();
+}
+function clearSupModal(){
+  const {name,d}=modalCtx;
+  const oldEntry=supportSchedule[name]&&supportSchedule[name][d];
+  if(oldEntry&&oldEntry.link&&generatedData&&generatedData.sched&&generatedData.sched[oldEntry.link]&&generatedData.sched[oldEntry.link][d]==='off'){
+    generatedData.sched[oldEntry.link][d]='work';
+  }
+  if(supportSchedule[name])delete supportSchedule[name][d];
+  closeSupModal();renderPage2();
+}
+function closeSupModal(){
+  const m=document.getElementById('sup-modal');if(m)m.remove();
+  modalCtx=null;
+}
+function findLinkSupport(staffName,d){
+  for(const s of supportStaff){
+    const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+    if(e&&e.link===staffName)return s.name;
+  }
+  return null;
+}
+function genPage2(){
+  page2Generated=true;
+  if(maxUnlocked<3){maxUnlocked=3;renderTopnav();}
+  document.getElementById('btn-dl2').disabled=false;
+  document.getElementById('btn-skel').disabled=false;
+  const {sched,cal,supMap,mandatoryOff}=generatedData;
+  const CLS={off:'c-off',sup:'c-sup',mob:'c-mob',must:'c-must',work:'c-work'};
+  const TXT={off:'休',sup:'支',mob:'機',must:'上',work:''};
+  const cols=cal.map(({d,wn,wd})=>`<th style="min-width:30px;padding:3px 2px;font-size:9px;${wd===5?'background:#D4EDDA;color:#155724;':wd===6?'background:#FADDE1;color:#8B0000;':'background:#f5f5f5;color:#333;'}">${d}<br>週${wn}</th>`).join('');
+  const buildRows=members=>members.map(s=>{
+    const cells=cal.map(({d})=>{
+      const st=sched[s.name]?sched[s.name][d]:'work';
+      const linkSup=st==='off'?findLinkSupport(s.name,d):null;
+      const cls=linkSup?'':(CLS[st]||'c-work');
+      const isMust=st==='off'&&!linkSup&&mandatoryOff&&mandatoryOff[s.name+'_'+d];
+      const styleOverride=linkSup?'background:#26215C;color:#fff;font-weight:600;':(isMust?'font-weight:700;':'');
+      return `<td class="${cls}" style="${styleOverride}padding:3px 2px;font-size:9px;text-align:center">${TXT[st]||''}${linkSup?`<br><span style="font-size:8px;color:#D6D4F0">→${linkSup}補</span>`:''}</td>`;
+    }).join('');
+    return `<tr><td style="font-size:9px;font-weight:600;text-align:left;padding:3px 5px;min-width:70px;border-right:2px solid #ccc;position:sticky;left:0;background:#fff">${s.name}</td>${cells}</tr>`;
+  }).join('');
+  const buildSupVisitorRow=store=>{
+    if(!cal.some(({d})=>(supMap[store+'_'+d]||[]).length>0))return'';
+    const cells=cal.map(({d})=>{
+      const ns=(supMap[store+'_'+d]||[]).join(',');
+      return `<td style="background:#EDE8FF;color:#3C3489;font-size:7px;font-style:italic;padding:2px;text-align:center">${ns}</td>`;
+    }).join('');
+    return `<tr><td style="font-size:7px;color:#3C3489;padding:2px 5px;font-weight:600;white-space:nowrap;border-right:2px solid #ccc;position:sticky;left:0;background:#EDE8FF">支援↑</td>${cells}</tr>`;
+  };
+  const buildTempStaffRows=store=>supportStaff.filter(s=>Object.values(supportSchedule[s.name]||{}).some(e=>(e.targetStore||s.store)===store)).map(s=>{
+    const cells=cal.map(({d})=>{
+      const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+      if(!e||(e.targetStore||s.store)!==store)return'<td></td>';
+      return `<td style="background:#FAEEDA;color:#633806;font-size:8px;padding:2px;text-align:center">貼班${e.hours.toFixed(1)}h${e.link?`<br>補${e.link}`:''}</td>`;
+    }).join('');
+    return `<tr><td style="font-size:8px;color:#633806;font-weight:600;text-align:left;padding:3px 5px;min-width:70px;border-right:2px solid #ccc;position:sticky;left:0;background:#FAEEDA">${s.name}(貼班)</td>${cells}</tr>`;
+  }).join('');
+  const storeBlocks=STORES.map(store=>{
+    const members=staff.filter(s=>s.store===store);
+    if(!members.length)return'';
+    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]}"><div style="width:7px;height:7px;border-radius:50%;background:${SC[store]}"></div>${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${buildRows(members)}${buildSupVisitorRow(store)}${buildTempStaffRows(store)}</tbody></table></div></div>`;
+  }).join('');
+  const mobMembers=staff.filter(s=>s.type==='機動人員');
+  const mobBlock=mobMembers.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FFFBEB">🔄 機動人員</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${buildRows(mobMembers)}</tbody></table></div></div>`:'';
+  const supRows=supportStaff.map(s=>{
+    const days=cal.map(({d})=>{
+      const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+      if(!e)return'<td></td>';
+      return `<td style="background:#FAEEDA;color:#633806;font-size:9px;padding:2px">貼班<br>${e.hours.toFixed(1)}h${e.link?`<div style="font-size:7px">補${e.link}</div>`:''}</td>`;
+    }).join('');
+    return `<tr><td style="font-weight:600;font-size:9px;text-align:left;padding:3px 5px;border-right:2px solid #ccc;position:sticky;left:0;background:#fff">${s.name}</td>${days}</tr>`;
+  }).join('');
+  const supBlock=supportStaff.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FAEEDA">🏷️ 貼班人員（疊加）</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${supRows}</tbody></table></div></div>`:'';
+  const totalCost=supportStaff.reduce((sum,s)=>{
+    const days=Object.values(supportSchedule[s.name]||{});
+    return sum+days.reduce((a,e)=>a+e.hours*s.wage,0);
+  },0);
+  document.getElementById('page2-preview').innerHTML=`
+    ${mobBlock}${storeBlocks}${supBlock}
+    <div style="background:#fff;border-radius:8px;padding:10px;font-size:10px;color:#666">貼班總工資估算：<strong>$${totalCost.toFixed(0)}</strong>（工時×時薪，貼班當天不佔用其原職別排休配額；「→OOO補」表示該請假由貼班人員補上）</div>`;
+  genPage3(); // 自動連動生成薪資假表，不用手動再點一次（沒上傳覆蓋Excel時走記憶體自動帶入路徑）
+}
+function downloadExcel2(){
+  if(!page2Generated){alert('請先生成次假表');return;}
+  const {sched,cal,y,m,supMap,mandatoryOff}=generatedData;
+  const lunarMap=parseLunarNotes();
+  const bottomNotes=((document.getElementById('bottom-notes')&&document.getElementById('bottom-notes').value)||'').split('\n').filter(Boolean);
+  const wb=new ExcelJS.Workbook();
+  [...STORES.map(store=>({name:store,home:staff.filter(s=>s.store===store)})),{name:'機動人員',home:staff.filter(s=>s.type==='機動人員')}].forEach(({name,home})=>{
+    if(!home.length)return;
+    buildCalendarWorkbookSheet(wb,name,home,cal,sched,supMap,lunarMap,bottomNotes,findLinkSupport,true,mandatoryOff);
+  });
+  if(supportStaff.length){
+    const ws=wb.addWorksheet('貼班人員');
+    ws.columns=[{width:18},...cal.map(()=>({width:11}))];
+    ws.views=[{state:'frozen',xSplit:1,ySplit:1}];
+    ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
+    const TS_BORDER={style:'thin',color:{argb:'FFF0F0F0'}};
+    ws.getCell(1,1).value='姓名';ws.getCell(1,1).font={name:'微軟正黑體',bold:true};ws.getCell(1,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};ws.getCell(1,1).border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};
+    cal.forEach(({d,wn},ci)=>{const c=ws.getCell(1,ci+2);c.value=`${d}週${wn}`;c.font={name:'微軟正黑體',bold:true};c.alignment={horizontal:'center'};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};c.border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};});
+    supportStaff.forEach((s,ri)=>{
+      const labelCell=ws.getCell(ri+2,1);
+      labelCell.value=`${s.name}($${s.wage}/hr)`;labelCell.font={name:'微軟正黑體',bold:true};labelCell.border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};
+      cal.forEach(({d},ci)=>{
+        const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+        const cell=ws.getCell(ri+2,ci+2);
+        cell.value=e?`${e.targetStore||s.store}\n貼班${e.hours.toFixed(1)}h${e.link?`補${e.link}`:''}`:'';
+        cell.font={name:'微軟正黑體'};
+        cell.alignment={horizontal:'center',wrapText:true};
+        cell.border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};
+      });
+    });
+  }
+  downloadWorkbook(wb,`伸港排班_${y}年${m}月_次假表.xlsx`);
+}
+
+/**
+ * 匯出假表骨架（2026-07-28新增）：格式比照排班薪資系統_v7.html的exportScheduleSkeleton()，
+ * 讓夥伴用這份單機版排完班後，可以直接匯出JSON給老闆匯入生命值骨架網頁計算薪資，
+ * 不需要經過v7、也不需要上傳Excel（Excel人工修正過容易解析出錯，JSON骨架不會有這個問題）。
+ */
+function exportScheduleSkeleton(){
+  if(!page2Generated||!generatedData){alert('請先生成次假表');return;}
+  const{sched,cal,y,m,supMap}=generatedData;
+  const schedule=cal.map(({d})=>{
+    const dayObj={d};
+    staff.forEach(s=>{dayObj[s.name]=sched[s.name]?sched[s.name][d]:'work';});
+    return dayObj;
+  });
+  const data={
+    year:y,month:m,
+    stores:STORES,
+    staff:staff.map(s=>({name:s.name,store:s.store,type:s.type})),
+    schedule,
+    supMap:supMap||{},
+    storeGroups:storeGroups||[],
+    holidays:cal.map(({d,isHol})=>({d,isHol}))
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`伸港排班_${y}年${m}月_假表骨架.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── 第三頁：薪資假表（上傳次假表 Excel II → 解析底色／文字 → 統計） ──
+let p3Workbook=null,p3Generated=false,p3Results=null;
+function handleP3Upload(e){
+  const file=e.target.files[0];if(!file)return;
+  const statusEl=document.getElementById('p3-upload-status');
+  const reader=new FileReader();
+  reader.onload=async function(ev){
+    try{
+      const wb=new ExcelJS.Workbook();
+      await wb.xlsx.load(ev.target.result);
+      p3Workbook=wb;
+      statusEl.style.color='';
+      statusEl.textContent=`已上傳：${file.name}`;
+    }catch(err){
+      statusEl.style.color='#C0392B';
+      statusEl.textContent=`⚠️上傳失敗：「${file.name}」無法解析，請確認是正確的Excel檔案（原有資料未變動）`;
+      console.error(err);
+    }
+    e.target.value='';
+  };
+  reader.onerror=function(){
+    statusEl.style.color='#C0392B';
+    statusEl.textContent=`⚠️讀取檔案失敗：「${file.name}」，請重新選擇檔案`;
+    e.target.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+function parseStoreSheet(ws,homeNames,mobileMode){
+  const stats={};homeNames.forEach(n=>stats[n]={wdOff:0,hdOff:0,selfSup:0,coveredLeave:0,hourEntries:[]});
+  const visitorEntries={};const tempEntries={};
+  const maxRow=ws.rowCount;
+  let r=1;
+  while(r<=maxRow){
+    const rowVals=[];for(let c=1;c<=7;c++)rowVals.push(ws.getCell(r,c).text);
+    const isDateRow=rowVals.some(v=>typeof v==='string'&&/^\d{1,2}(\s|$)/.test(v.trim()));
+    if(!isDateRow){r++;continue;}
+    const dates={};rowVals.forEach((v,i)=>{if(typeof v==='string'){const dm=v.trim().match(/^(\d{1,2})(\s|$)/);if(dm)dates[i+1]=+dm[1];}});
+    r++;
+    homeNames.forEach(name=>{
+      for(let c=1;c<=7;c++){
+        if(!dates[c]){continue;}
+        const cell=ws.getCell(r,c);
+        const v=cell.value;if(!v)continue;
+        const text=String(v).replace(/\n/g,'');
+        const d=dates[c];
+        const wd=c-1;const isHol=wd===5||wd===6;
+        const m=text.match(/(\d+(\.\d+)?)h$/i);
+        if(m&&text!==name){
+          // 機動人員：有數字一律算跨店時數；本店員工：靠文字是否含「支援」分計時/跨店
+          stats[name].hourEntries.push({d,hours:+m[1],cross:mobileMode?true:text.includes('支援')});
+          continue;
+        }
+        const fillArgb=cell.fill&&cell.fill.fgColor&&cell.fill.fgColor.argb;
+        const personal=offFillFor(name);
+        if(fillArgb===LEAVE_COVERED_FILL){stats[name].coveredLeave++;}
+        else if(fillArgb===personal){if(isHol)stats[name].hdOff++;else stats[name].wdOff++;}
+        else if(fillArgb==='FFFAEEDA'){stats[name].selfSup++;}
+      }
+      r++;
+    });
+    let blankStreak=0;
+    while(r<=maxRow){
+      const rv=[];for(let c=1;c<=7;c++)rv.push(ws.getCell(r,c).value);
+      const rvText=[];for(let c=1;c<=7;c++)rvText.push(ws.getCell(r,c).text);
+      const looksLikeDateRow=rvText.some(v=>typeof v==='string'&&/^\d+$/.test(v.trim()));
+      if(looksLikeDateRow)break; // 下一週標題列，本週的訪客/貼班掃描結束
+      if(rv.every(v=>!v)){
+        blankStreak++;
+        if(blankStreak>=2)break; // 連續兩個空白列才視為真正結束（避開誤吃底部備註）
+        r++;continue;
+      }
+      blankStreak=0;
+      for(let c=1;c<=7;c++){
+        if(!dates[c])continue;
+        const v=ws.getCell(r,c).value;if(!v)continue;
+        const text=String(v).replace(/\n/g,'');
+        const d=dates[c];
+        if(text.includes('貼班')){
+          const nameMatch=text.split('貼班')[0];
+          const hm=text.split('貼班')[1].match(/(\d+(\.\d+)?)/);
+          tempEntries[nameMatch]=(tempEntries[nameMatch]||0)+(hm?+hm[1]:0);
+        }else{
+          const nm=text.split('\n')[0];
+          // 「OOO支援XX店」格式：本來是本店員工自己「他店支援」的標記，不是訪客姓名
+          const supMatch=nm.match(/^(.+?)支援.+?店$/);
+          if(supMatch&&stats[supMatch[1]]){stats[supMatch[1]].selfSup++;continue;}
+          // 來店支援／機動人員訪客row：名字後有數字→跨店時數(時薪)；無數字→來店支援/出勤天數(日薪)，兩者互斥
+          const hm=nm.match(/^(.*?)(\d+(\.\d+)?)h$/i);
+          let baseName,hours=null;
+          if(hm){baseName=hm[1].trim();hours=+hm[2];}else{baseName=nm.trim();}
+          if(!baseName)continue;
+          if(homeNames.includes(baseName)){
+            // 本店員工本身不該算訪客；若有數字就算進他自己的工時
+            if(hours!==null)stats[baseName].hourEntries.push({d,hours,cross:mobileMode?true:nm.includes('支援')});
+            continue;
+          }
+          if(!visitorEntries[baseName])visitorEntries[baseName]={days:new Set(),hours:0};
+          if(hours!==null)visitorEntries[baseName].hours+=hours;
+          else visitorEntries[baseName].days.add(d);
+        }
+      }
+      r++;
+    }
+  }
+  return{stats,visitorEntries,tempEntries};
+}
+/**
+ * 直接從記憶體（generatedData.sched/cal/supMap + supportStaff/supportSchedule貼班人員）計算
+ * 第三頁統計，不經過Excel上傳/解析。回傳格式與parseStoreSheet()完全一致，讓genPage3()兩條
+ * 路徑（自動帶入／上傳覆蓋）共用同一套下游渲染與下載邏輯。
+ * 單機版沒有v7的「出勤紀錄」調整頁，schedule本身就是最終狀態，不需要額外疊加調整層。
+ */
+function computeStoreStatsFromMemory(store,home,mobileMode){
+  const {sched,cal,supMap}=generatedData;
+  const stats={};home.forEach(s=>stats[s.name]={wdOff:0,hdOff:0,selfSup:0,coveredLeave:0,hourEntries:[]});
+  const visitorEntries={};const tempEntries={};
+  const isStoreScope=STORES.includes(store);
+  home.forEach(s=>{
+    cal.forEach(({d,isHol})=>{
+      const st=sched[s.name]?sched[s.name][d]:'work';
+      if(st==='off'){
+        const linked=findLinkSupport(s.name,d);
+        if(linked){stats[s.name].coveredLeave++;}
+        else{if(isHol)stats[s.name].hdOff++;else stats[s.name].wdOff++;}
+      }else if(st==='sup'){
+        stats[s.name].selfSup++;
+      }else if(st==='work'||st==='must'||st==='mob'){
+        if(s.type==='計時'){
+          stats[s.name].hourEntries.push({d,hours:9.5,cross:false});
+        }
+      }
+    });
+  });
+  if(isStoreScope){
+    const visitorNames=new Set();
+    cal.forEach(({d})=>{(supMap[store+'_'+d]||[]).forEach(n=>{if(!home.some(h=>h.name===n))visitorNames.add(n);});});
+    visitorNames.forEach(vname=>{
+      if(!visitorEntries[vname])visitorEntries[vname]={days:new Set(),hours:0};
+      cal.forEach(({d})=>{
+        if((supMap[store+'_'+d]||[]).includes(vname))visitorEntries[vname].days.add(d);
+      });
+    });
+  }
+  if(isStoreScope){
+    supportStaff.filter(s=>Object.values(supportSchedule[s.name]||{}).some(e=>(e.targetStore||s.store)===store)).forEach(s=>{
+      cal.forEach(({d})=>{
+        const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
+        if(!e||(e.targetStore||s.store)!==store)return;
+        tempEntries[s.name]=(tempEntries[s.name]||0)+e.hours;
+      });
+    });
+  }
+  return{stats,visitorEntries,tempEntries};
+}
+function genPage3(){
+  if(!generatedData){alert('請先完成第一頁初假表');return;}
+  if(!p3Workbook){
+    // 尚未上傳覆蓋檔：沿用第二頁自動帶入的記憶體資料計算（比照v7 linkPage2DataToPage4的模式）
+    const dim=generatedData.cal.length;
+    const results=[];
+    [...STORES.map(s=>({store:s,home:staff.filter(x=>x.store===s)})),{store:'機動人員',home:staff.filter(x=>x.type==='機動人員')}].forEach(({store,home})=>{
+      if(!home.length)return;
+      const homeNames=home.map(s=>s.name);
+      const parsed=computeStoreStatsFromMemory(store,home,store==='機動人員');
+      results.push({store,homeNames,parsed,dim});
+    });
+    p3Results=results;
+    p3Generated=true;
+    document.getElementById('btn-dl3').disabled=false;
+    if(maxUnlocked<4){maxUnlocked=4;renderTopnav();}
+    renderPage3Preview();
+    return;
+  }
+  const dim=generatedData.cal.length;
+  const results=[];
+  [...STORES.map(s=>({store:s,home:staff.filter(x=>x.store===s)})),{store:'機動人員',home:staff.filter(x=>x.type==='機動人員')}].forEach(({store,home})=>{
+    if(!home.length)return;
+    const sheetName=store.replace('店','');
+    const ws=p3Workbook.worksheets.find(w=>w.name===sheetName);
+    if(!ws)return;
+    const homeNames=home.map(s=>s.name);
+    const parsed=parseStoreSheet(ws,homeNames,store==='機動人員');
+    results.push({store,homeNames,parsed,dim});
+  });
+  p3Results=results;
+  p3Generated=true;
+  document.getElementById('btn-dl3').disabled=false;
+  if(maxUnlocked<4){maxUnlocked=4;renderTopnav();}
+  renderPage3Preview();
+}
+function renderPage3Preview(){
+  const blocks=p3Results.map(({store,homeNames,parsed,dim})=>{
+    const rows=homeNames.map(name=>{
+      const s=parsed.stats[name];
+      const selfHrs=s.hourEntries.filter(e=>!e.cross).reduce((a,e)=>a+e.hours,0);
+      const crossHrs=s.hourEntries.filter(e=>e.cross).reduce((a,e)=>a+e.hours,0);
+      const st=staff.find(x=>x.name===name);
+      const noAttendance=store==='機動人員'||(st&&st.type==='計時');
+      const outDays=noAttendance?'—':dim-s.wdOff-s.hdOff-s.coveredLeave-s.selfSup;
+      return `<tr><td style="text-align:left;padding:3px 6px">${name}</td><td>${s.wdOff}</td><td>${s.hdOff}</td><td>${s.coveredLeave}</td><td>${s.selfSup}</td><td>—</td><td>${outDays}</td><td>${selfHrs||0}</td><td>${crossHrs||0}</td><td>—</td></tr>`;
+    });
+    Object.keys(parsed.visitorEntries).forEach(name=>{
+      const v=parsed.visitorEntries[name];
+      const days=v.days.size;const hrs=v.hours;
+      rows.push(`<tr><td style="text-align:left;padding:3px 6px">${name}（來店支援）</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${days||'—'}</td><td>${days||'—'}</td><td>0</td><td>${hrs||0}</td><td>—</td></tr>`);
+    });
+    Object.keys(parsed.tempEntries).forEach(name=>{
+      rows.push(`<tr><td style="text-align:left;padding:3px 6px">${name}（貼班）</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${parsed.tempEntries[name].toFixed(1)}h</td></tr>`);
+    });
+    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]||'#f0f0f0'}">${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>姓名</th><th>平日休</th><th>假日休</th><th>請假</th><th>他店支援</th><th>來店支援</th><th>出勤天數</th><th>計時時數</th><th>跨店時數</th><th>貼班時數</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+  }).join('');
+  document.getElementById('page3-preview').innerHTML=blocks;
+}
+function downloadExcel3(){
+  if(!p3Generated){alert('請先生成薪資假表');return;}
+  // 若使用者尚未上傳覆蓋用Excel（p3Workbook為null），比照v7 downloadExcel4：
+  // 先用跟downloadExcel2()相同的邏輯就地生成一份Excel II工作簿當底，再疊加統計欄
+  let wb=p3Workbook;
+  if(!wb){
+    const {sched,cal,supMap,mandatoryOff}=generatedData;
+    const lunarMap=parseLunarNotes();
+    const bottomNotes=((document.getElementById('bottom-notes')&&document.getElementById('bottom-notes').value)||'').split('\n').filter(Boolean);
+    wb=new ExcelJS.Workbook();
+    [...STORES.map(store=>({name:store,home:staff.filter(s=>s.store===store)})),{name:'機動人員',home:staff.filter(s=>s.type==='機動人員')}].forEach(({name,home})=>{
+      if(!home.length)return;
+      buildCalendarWorkbookSheet(wb,name,home,cal,sched,supMap,lunarMap,bottomNotes,findLinkSupport,true,mandatoryOff);
+    });
+  }
+  p3Results.forEach(({store,homeNames,parsed,dim})=>{
+    const sheetName=store.replace('店','');
+    const ws=wb.worksheets.find(w=>w.name===sheetName);
+    if(!ws)return;
+    const headers=['姓名','平日休','假日休','請假','他店支援','來店支援','出勤天數','計時時數','跨店時數','貼班時數'];
+    const STAT_BORDER={style:'thin',color:{argb:'FFF0F0F0'}};
+    headers.forEach((h,i)=>{
+      const c=ws.getCell(1,8+i);
+      c.value=h;c.font={name:'微軟正黑體',bold:true};
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};
+      c.alignment={horizontal:'center',vertical:'middle'};
+      c.border={top:STAT_BORDER,left:STAT_BORDER,bottom:STAT_BORDER,right:STAT_BORDER};
+    });
+    let row=2;
+    homeNames.forEach(name=>{
+      const s=parsed.stats[name];
+      const selfHrs=s.hourEntries.filter(e=>!e.cross).reduce((a,e)=>a+e.hours,0);
+      const crossHrs=s.hourEntries.filter(e=>e.cross).reduce((a,e)=>a+e.hours,0);
+      const st=staff.find(x=>x.name===name);
+      const noAttendance=store==='機動人員'||(st&&st.type==='計時');
+      const outDays=noAttendance?'—':dim-s.wdOff-s.hdOff-s.coveredLeave-s.selfSup;
+      [name,s.wdOff,s.hdOff,s.coveredLeave,s.selfSup,'',outDays,selfHrs||0,crossHrs||0,''].forEach((v,i)=>{const c=ws.getCell(row,8+i);c.value=v;c.font={name:'微軟正黑體'};c.alignment={horizontal:'center',vertical:'middle'};c.border={top:STAT_BORDER,left:STAT_BORDER,bottom:STAT_BORDER,right:STAT_BORDER};});
+      row++;
+    });
+    Object.keys(parsed.visitorEntries).forEach(name=>{
+      const v=parsed.visitorEntries[name];
+      const days=v.days.size;const hrs=v.hours;
+      [name+'（來店支援）','','','','',days||'',days||'',0,hrs||0,''].forEach((val,i)=>{const c=ws.getCell(row,8+i);c.value=val;c.font={name:'微軟正黑體'};c.alignment={horizontal:'center',vertical:'middle'};c.border={top:STAT_BORDER,left:STAT_BORDER,bottom:STAT_BORDER,right:STAT_BORDER};});
+      row++;
+    });
+    Object.keys(parsed.tempEntries).forEach(name=>{
+      [name+'（貼班）','','','','','','','','',parsed.tempEntries[name].toFixed(1)+'h'].forEach((val,i)=>{const c=ws.getCell(row,8+i);c.value=val;c.font={name:'微軟正黑體'};c.alignment={horizontal:'center',vertical:'middle'};c.border={top:STAT_BORDER,left:STAT_BORDER,bottom:STAT_BORDER,right:STAT_BORDER};});
+      row++;
+    });
+  });
+  downloadWorkbook(wb,`伸港排班_${generatedData.y}年${generatedData.m}月_薪資假表.xlsx`);
+}
+
+// ── 頁籤導覽 ──
+const PAGE_NAMES=['初假表','次假表','薪資假表','薪資表'];
+const PAGE_HEADER={
+  1:{icon:'🗓',title:'伸港排班系統v27 (單機版)',sub:'設定規則 → 生成初假表 → 下載初假表Excel'},
+  2:{icon:'🏷️',title:'伸港排班系統v27 (單機版)',sub:'新增貼班人員 → 匯出假表骨架・下載次假表Excel'},
+  3:{icon:'📑',title:'伸港排班系統v27 (單機版)',sub:'月底確認異動・反推出勤天數 → 生成薪資假表 → 下載薪資假表Excel'},
+  4:{icon:'💰',title:'伸港排班系統v27 (單機版)',sub:'業績X→福利Y・計算薪資 → 生成薪資表 → 下載 Excel IV'}
+};
+let maxUnlocked=1,curPage=1;
+function renderTopnav(){
+  document.getElementById('topnav').innerHTML=PAGE_NAMES.map((n,i)=>{
+    const p=i+1,locked=p>maxUnlocked;
+    return `<div class="tnitem${p===curPage?' active':''}${locked?' locked':''}" onclick="goPage(${p})">${p}. ${n}</div>`;
+  }).join('');
+}
+function updateHeader(p){
+  const h=PAGE_HEADER[p];
+  document.getElementById('sys-title').textContent=`${h.icon} ${h.title}`;
+  document.getElementById('sys-sub').textContent=h.sub;
+}
+function goPage(p){
+  if(p>maxUnlocked){alert(`請先完成第${maxUnlocked}頁「${PAGE_NAMES[maxUnlocked-1]}」的生成`);return;}
+  curPage=p;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  renderTopnav();
+  updateHeader(p);
+  if(p===2)renderPage2();
+}
+renderTopnav();
+updateHeader(1);
+window.addEventListener('beforeunload',function(e){
+  if(generatedData){e.preventDefault();e.returnValue='';}
+});
+</script>
+</body></html>
