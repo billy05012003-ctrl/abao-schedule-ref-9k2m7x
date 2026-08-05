@@ -134,6 +134,17 @@ input[type=text],input[type=number],select{border:1px solid #ccc;border-radius:5
 .modal-btns{display:flex;gap:5px;margin-top:8px}
 .modal-btns button{flex:1;border:none;border-radius:5px;padding:6px 0;font-size:10px;cursor:pointer;font-weight:600}
 .mb-save{background:#0F6E56;color:#fff}.mb-clear{background:#FCEBEB;color:#A32D2D}.mb-cancel{background:#f0f0f0;color:#555}
+.pk-btn{width:auto!important;padding:3px 8px!important;margin-top:0!important;flex-shrink:0}
+.pk-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.pk-nav{background:none;border:none;cursor:pointer;font-size:14px;color:#534AB7;padding:2px 6px}
+.pk-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.pk-wd{font-size:9px;color:#888;text-align:center;font-weight:600;padding:2px 0}
+.pk-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:10px;cursor:pointer;color:#1a1a1a}
+.pk-day.we{color:#A32D2D}
+.pk-day.sel{background:#534AB7;color:#fff;font-weight:600}
+.pk-week{display:flex;flex-wrap:wrap;gap:6px}
+.pk-wbtn{flex:1;min-width:40px;padding:8px 0;text-align:center;border-radius:6px;font-size:11px;cursor:pointer;background:#f9f9f9;border:1px solid #ddd;color:#1a1a1a}
+.pk-wbtn.sel{background:#534AB7;color:#fff;border-color:#534AB7;font-weight:600}
 @media (max-width:768px){
 body{font-size:13px}
 .layout{grid-template-columns:1fr;min-height:auto}
@@ -160,6 +171,7 @@ input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8
 }
 </style>
 </head><body>
+<div id="pin-modal-root"></div>
 <div class="topnav" id="topnav"></div>
 <div class="sys-hdr"><div class="sys-title" id="sys-title">🗓 溪湖排班系統v27 (單機版)</div><div class="sys-sub" id="sys-sub">設定規則 → 生成初假表 → 下載初假表Excel</div></div>
 <div class="layout page active" id="page-1">
@@ -212,8 +224,8 @@ input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8
 <div class="abox"><h4>新增</h4>
 <div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="p-staff"></select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="p-type"><option value="off">必休</option><option value="on">必上</option></select></div></div>
 <div style="height:1px;background:#e0e0e0;margin:5px 0"></div>
-<div class="fg" style="margin-top:0"><label>📆 指定日期（逗號分隔）</label><input type="text" id="p-dates" placeholder="不填則略過"></div>
-<div class="fg"><label>📅 指定星期</label><input type="text" id="p-weeks" placeholder="不填則略過"></div>
+<div class="fg" style="margin-top:0"><label>📆 指定日期（逗號分隔）</label><div style="display:flex;gap:4px"><input type="text" id="p-dates" placeholder="不填則略過" style="flex:1"><button class="badd bsec pk-btn" onclick="openDatePicker('p-dates')">📅</button></div></div>
+<div class="fg"><label>📅 指定星期</label><div style="display:flex;gap:4px"><input type="text" id="p-weeks" placeholder="不填則略過" style="flex:1"><button class="badd bsec pk-btn" onclick="openWeekPicker('p-weeks')">📅</button></div></div>
 <button class="badd" onclick="addPin()">＋ 新增</button></div>
 </div></div>
 
@@ -514,12 +526,67 @@ function addStaff(){
   document.getElementById('n-name').value='';['n-wd','n-hd'].forEach(id=>{document.getElementById(id).value=0;document.getElementById(id+'-v').textContent=0;});renderStaff();renderSelects();
 }
 function renderPins(){document.getElementById('pin-list').innerHTML=pins.length?pins.map((p,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;margin-bottom:2px"><span class="bdg ${p.type==='off'?'poff':'pon'}">${p.type==='off'?'必休':'必上'}</span><span style="font-size:10px;font-weight:600">${p.name}</span></div><div style="font-size:8px;color:#888;line-height:1.5">${p.dates?`<div>📆 ${p.dates}</div>`:''}${p.weeks?`<div>📅 ${p.weeks}</div>`:''}</div></div><div class="sa"><button class="bi" onclick="editP(${i})">✏️</button><button class="bi" onclick="delP(${i})">🗑</button></div></div>${ePIdx===i?renderEP(i):''}</div>`).join(''):`<div style="font-size:9px;color:#888;padding:2px 0 5px">尚無設定</div>`;}
-function renderEP(i){const p=pins[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="ep-s">${staff.map(s=>`<option${s.name===p.name?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="ep-t"><option value="off"${p.type==='off'?' selected':''}>必休</option><option value="on"${p.type==='on'?' selected':''}>必上</option></select></div></div><div style="height:1px;background:#e0e0e0;margin:5px 0"></div><div class="fg" style="margin-top:0"><label>📆 指定日期</label><input id="ep-d" type="text" value="${p.dates||''}" placeholder="不填則略過"></div><div class="fg"><label>📅 指定星期</label><input id="ep-w" type="text" value="${p.weeks||''}" placeholder="不填則略過"></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveP(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelEP()">取消</button></div></div>`;}
+function renderEP(i){const p=pins[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>夥伴</label><select id="ep-s">${staff.map(s=>`<option${s.name===p.name?' selected':''}>${s.name}</option>`).join('')}</select></div><div class="fg" style="margin-top:0"><label>類型</label><select id="ep-t"><option value="off"${p.type==='off'?' selected':''}>必休</option><option value="on"${p.type==='on'?' selected':''}>必上</option></select></div></div><div style="height:1px;background:#e0e0e0;margin:5px 0"></div><div class="fg" style="margin-top:0"><label>📆 指定日期</label><div style="display:flex;gap:4px"><input id="ep-d" type="text" value="${p.dates||''}" placeholder="不填則略過" style="flex:1"><button class="badd bsec pk-btn" onclick="openDatePicker('ep-d')">📅</button></div></div><div class="fg"><label>📅 指定星期</label><div style="display:flex;gap:4px"><input id="ep-w" type="text" value="${p.weeks||''}" placeholder="不填則略過" style="flex:1"><button class="badd bsec pk-btn" onclick="openWeekPicker('ep-w')">📅</button></div></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveP(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelEP()">取消</button></div></div>`;}
 function editP(i){ePIdx=(ePIdx===i?-1:i);renderPins();}
 function cancelEP(){ePIdx=-1;renderPins();}
 function saveP(i){pins[i]={name:document.getElementById('ep-s').value,type:document.getElementById('ep-t').value,dates:document.getElementById('ep-d').value.trim(),weeks:document.getElementById('ep-w').value.trim()};ePIdx=-1;renderPins();}
 function delP(i){if(ePIdx===i)ePIdx=-1;pins.splice(i,1);renderPins();}
 function addPin(){const dates=document.getElementById('p-dates').value.trim(),weeks=document.getElementById('p-weeks').value.trim();if(!dates&&!weeks)return;pins.push({name:document.getElementById('p-staff').value,type:document.getElementById('p-type').value,dates,weeks});document.getElementById('p-dates').value='';document.getElementById('p-weeks').value='';renderPins();}
+let pkState=null;
+const PK_WN=['一','二','三','四','五','六','日'];
+function openDatePicker(targetId){
+  const yr=+document.getElementById('yr').value||2026,mo=+document.getElementById('mo').value||1;
+  const cur=(document.getElementById(targetId).value||'').split(',').map(x=>x.trim()).filter(Boolean).map(Number).filter(n=>!isNaN(n));
+  pkState={targetId,mode:'date',yr,mo,selected:new Set(cur)};
+  renderPkModal();
+}
+function openWeekPicker(targetId){
+  const val=document.getElementById(targetId).value||'';
+  const cur=PK_WN.filter(w=>val.includes('週'+w));
+  pkState={targetId,mode:'week',selected:new Set(cur)};
+  renderPkModal();
+}
+function renderPkModal(){document.getElementById('pin-modal-root').innerHTML=pkState.mode==='date'?renderPkDateHtml():renderPkWeekHtml();}
+function renderPkDateHtml(){
+  const{yr,mo,selected}=pkState;
+  const days=new Date(yr,mo,0).getDate();
+  const first=new Date(yr,mo-1,1).getDay();
+  const wns=['日','一','二','三','四','五','六'];
+  let cells=wns.map(w=>`<div class="pk-wd">${w}</div>`).join('');
+  for(let i=0;i<first;i++)cells+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const wd=new Date(yr,mo-1,d).getDay();
+    cells+=`<div class="pk-day${selected.has(d)?' sel':''}${wd===0||wd===6?' we':''}" onclick="togglePkDate(${d})">${d}</div>`;
+  }
+  return`<div class="modal-bg" style="position:fixed"><div class="modal-box" style="width:280px">
+<h4>📆 選擇日期</h4>
+<div class="pk-hdr"><button class="pk-nav" onclick="shiftPkMonth(-1)">‹</button><span style="font-size:11px;font-weight:600">${yr}年${mo}月</span><button class="pk-nav" onclick="shiftPkMonth(1)">›</button></div>
+<div style="font-size:9px;color:#888;margin-bottom:6px">點擊可複選多天</div>
+<div class="pk-cal">${cells}</div>
+<div class="modal-btns"><button class="mb-clear" onclick="clearPk()">重置</button><button class="mb-cancel" onclick="closePk()">取消</button><button class="mb-save" onclick="savePk()">完成</button></div>
+</div></div>`;
+}
+function renderPkWeekHtml(){
+  const{selected}=pkState;
+  return`<div class="modal-bg" style="position:fixed"><div class="modal-box" style="width:280px">
+<h4>📅 選擇星期</h4>
+<div style="font-size:9px;color:#888;margin-bottom:8px">點擊可複選多天</div>
+<div class="pk-week">${PK_WN.map(w=>`<div class="pk-wbtn${selected.has(w)?' sel':''}" onclick="togglePkWeek('${w}')">週${w}</div>`).join('')}</div>
+<div class="modal-btns"><button class="mb-clear" onclick="clearPk()">重置</button><button class="mb-cancel" onclick="closePk()">取消</button><button class="mb-save" onclick="savePk()">完成</button></div>
+</div></div>`;
+}
+function togglePkDate(d){if(pkState.selected.has(d))pkState.selected.delete(d);else pkState.selected.add(d);renderPkModal();}
+function togglePkWeek(w){if(pkState.selected.has(w))pkState.selected.delete(w);else pkState.selected.add(w);renderPkModal();}
+function shiftPkMonth(delta){pkState.mo+=delta;if(pkState.mo<1){pkState.mo=12;pkState.yr--;}else if(pkState.mo>12){pkState.mo=1;pkState.yr++;}renderPkModal();}
+function clearPk(){pkState.selected.clear();renderPkModal();}
+function closePk(){document.getElementById('pin-modal-root').innerHTML='';pkState=null;}
+function savePk(){
+  const{targetId,mode,selected}=pkState;
+  const el=document.getElementById(targetId);
+  if(mode==='date')el.value=[...selected].sort((a,b)=>a-b).join(',');
+  else el.value=PK_WN.filter(w=>selected.has(w)).map(w=>'週'+w).join(',');
+  closePk();
+}
 let curAdjType=1;
 function switchAdjType(t){curAdjType=t;document.querySelectorAll('#adj-type-tabs .stab').forEach((b,i)=>b.classList.toggle('active',i+1===t));[1,2,3].forEach(i=>document.getElementById('adj-type-'+i).style.display=i===t?'block':'none');}
 function toggleAdjForm(){
