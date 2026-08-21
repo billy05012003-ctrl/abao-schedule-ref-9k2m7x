@@ -173,7 +173,7 @@ input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8
 </head><body>
 <div id="pin-modal-root"></div>
 <div class="topnav" id="topnav"></div>
-<div class="sys-hdr"><div class="sys-title" id="sys-title">🗓 伸港排班系統v27 (單機版)</div><div class="sys-sub" id="sys-sub">設定規則 → 生成初假表 → 下載初假表Excel</div></div>
+<div class="sys-hdr" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div><div class="sys-title" id="sys-title">🗓 伸港排班系統v27 (單機版)</div><div class="sys-sub" id="sys-sub">設定規則 → 生成初假表 → 下載初假表Excel</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span id="v7-save-warn" style="display:none;font-size:9px;background:#A32D2D;color:#fff;padding:3px 6px;border-radius:4px;white-space:nowrap"></span><button onclick="v7ClearAutoSave()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;font-size:9px;cursor:pointer;white-space:nowrap" title="清除瀏覽器本機自動存檔，重新開始">🗑 重新開始</button></div></div>
 <div class="layout page active" id="page-1">
 <div class="panel">
 <div class="panel-scroll">
@@ -613,6 +613,7 @@ function renderSelects(){
 }
 renderNeedTabs();renderNeedTable();renderOpenConds();renderStaff();renderPins();renderAdj();
 renderStoreRules();renderSelects();checkHint();renderStoreGroups();
+renderStaffRules();renderCross();
 
 // 覆蓋夥伴規則相關函式
 const RULE_TYPE_DESC={'同步休假':'觸發人休假→夥伴同步休假','同步出勤':'觸發人出勤→夥伴同步出勤','其他':'自訂規則'};
@@ -1766,5 +1767,101 @@ updateHeader(1);
 window.addEventListener('beforeunload',function(e){
   if(generatedData){e.preventDefault();e.returnValue='';}
 });
+
+// ── 本機自動存檔（2026-08-06從v7同步）：只顧「同一台電腦同一個瀏覽器關網頁不會消失」，
+// 不做跨裝置同步。存的是「輸入資料/設定」這個源頭，不存生成後的計算結果，
+// 還原時重跑genSchedule()/genPage2()/genPage3()這幾個既有生成函式重新算一遍。
+const V7_SAVE_KEY='v7AutoSave_伸港排班系統單機版';
+function v7CollectSaveData(){
+  return{
+    v:1,
+    yr:document.getElementById('yr').value,mo:document.getElementById('mo').value,
+    sat:document.getElementById('sat').checked,sun:document.getElementById('sun').checked,
+    hols:document.getElementById('hols').value,
+    lunarNotes:document.getElementById('lunar-notes').value,
+    bottomNotes:document.getElementById('bottom-notes').value,
+    needsData,openConds,staff,pins,adjustments,
+    storeRules,staffRules,crossRules,storeGroups,manualAdjustments,
+    supportStaff,supportSchedule,page2Generated,p3Generated,
+    maxUnlocked,curPage
+  };
+}
+let v7SaveSuspended=false;
+function v7ShowSaveWarn(msg){
+  const el=document.getElementById('v7-save-warn');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.display='inline-block';
+}
+function v7HideSaveWarn(){
+  const el=document.getElementById('v7-save-warn');
+  if(el)el.style.display='none';
+}
+function v7AutoSave(){
+  if(v7SaveSuspended)return;
+  try{
+    localStorage.setItem(V7_SAVE_KEY,JSON.stringify(v7CollectSaveData()));
+    v7HideSaveWarn();
+  }catch(e){
+    v7ShowSaveWarn('⚠️本機自動存檔失敗，關閉網頁資料會消失，請自行截圖/下載Excel備份');
+  }
+}
+setInterval(v7AutoSave,4000);
+window.addEventListener('beforeunload',v7AutoSave);
+window.addEventListener('storage',function(e){
+  if(e.key===V7_SAVE_KEY)v7ShowSaveWarn('⚠️偵測到本頁面同時在其他分頁開啟，兩邊自動存檔會互相覆蓋，建議只保留一個分頁操作');
+});
+
+function v7ClearAutoSave(){
+  if(!confirm('確定要清除本機自動存檔、重新開始嗎？此動作無法復原，畫面上目前的所有設定跟排班資料都會消失。'))return;
+  v7SaveSuspended=true;
+  try{localStorage.removeItem(V7_SAVE_KEY);}catch(e){}
+  location.reload();
+}
+
+function v7RestoreAutoSave(){
+  let raw;
+  try{raw=localStorage.getItem(V7_SAVE_KEY);}catch(e){return;}
+  if(!raw)return;
+  let d;
+  try{d=JSON.parse(raw);}catch(e){return;}
+  if(!d||d.v!==1)return;
+
+  document.getElementById('yr').value=d.yr;
+  document.getElementById('mo').value=d.mo;
+  document.getElementById('sat').checked=d.sat;
+  document.getElementById('sun').checked=d.sun;
+  document.getElementById('hols').value=d.hols;
+  document.getElementById('lunar-notes').value=d.lunarNotes||'';
+  document.getElementById('bottom-notes').value=d.bottomNotes||'';
+
+  needsData=d.needsData;openConds=d.openConds;staff=d.staff;pins=d.pins;adjustments=d.adjustments||[];
+  storeRules=d.storeRules||[];staffRules=d.staffRules||[];crossRules=d.crossRules||[];storeGroups=d.storeGroups||[];
+  manualAdjustments=d.manualAdjustments||[];
+  supportStaff=d.supportStaff||[];supportSchedule=d.supportSchedule||{};
+  page2Generated=!!d.page2Generated;p3Generated=!!d.p3Generated;
+  maxUnlocked=d.maxUnlocked||1;
+
+  renderNeedTabs();renderNeedTable();renderOpenConds();renderStaff();renderPins();renderAdj();
+  renderStoreRules();renderStaffRules();renderCross();renderSelects();renderStoreGroups();checkHint();
+
+  try{
+    if(maxUnlocked>=2)genSchedule();
+    if(page2Generated)genPage2();
+    if(p3Generated)genPage3();
+  }catch(e){
+    console.error('還原自動存檔時，重新生成計算結果發生錯誤',e);
+    alert('已還原上次的設定資料，但重新計算排班結果時發生錯誤，請手動重新按各頁的「生成」按鈕。');
+  }
+
+  const targetPage=d.curPage||1;
+  curPage=targetPage;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  const pageEl=document.getElementById('page-'+targetPage);
+  if(pageEl)pageEl.classList.add('active');
+  renderTopnav();updateHeader(targetPage);
+  if(targetPage===2)renderPage2();
+}
+v7RestoreAutoSave();
 </script>
 </body></html>
