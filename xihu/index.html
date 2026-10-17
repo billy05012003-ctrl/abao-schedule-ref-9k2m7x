@@ -338,17 +338,6 @@ input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <script>
-if(new Date()>new Date('2026-12-31T23:59:59')){
-  document.body.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;font-family:'Microsoft JhengHei',sans-serif;text-align:center;padding:20px">
-    <div style="background:#fff;border-radius:12px;padding:40px 30px;box-shadow:0 2px 12px rgba(0,0,0,0.1);max-width:420px">
-      <div style="font-size:40px;margin-bottom:12px">⏳</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;color:#333">此版本已過期</div>
-      <div style="font-size:12px;color:#666;line-height:1.7">「溪湖排班系統v27 (單機版)」適用期限至 2026/12/31（系統內建之國定假日資料僅涵蓋2026年）。<br>請聯繫小保取得新版本後再繼續使用。</div>
-    </div>
-  </div>`;
-  document.title='已過期 - 溪湖排班系統';
-  throw new Error('此版本已過期（適用至2026/12/31），請聯繫小保取得新版本');
-}
 // 密碼門檻（2026-07-28新增，自訂彈窗版）：只擋一般不相關人員誤開，前端密碼看得到原始碼，不是真資安防護
 (function(){
   const SITE_PASSWORD='3345678';
@@ -391,8 +380,10 @@ const LEAVE_COVERED_FILL='FF26215C';
 const SKILL_OPTS=['不限','煎台丙','煎台乙','煎台甲','櫃台丙','櫃台乙','櫃台甲','包飲','實習生'];
 const TYPE_OPTS=['正職','計時','八小時全職','機動人員','跨店支援'];
 const WN=['一','二','三','四','五','六','日'];
-const HOL={'2026-1':['1'],'2026-2':['9','10','11','12','13'],'2026-4':['4'],'2026-5':['1'],'2026-10':['10']};
-const HOL_N={'2026-1-1':'元旦','2026-2-9':'春節','2026-2-10':'春節','2026-2-11':'春節','2026-2-12':'春節','2026-2-13':'春節','2026-4-4':'兒童節/清明','2026-5-1':'勞動節','2026-10-10':'國慶日'};
+const HOL={'2026-1':['1'],'2026-2':['9','10','11','12','13'],'2026-4':['4'],'2026-5':['1'],'2026-10':['10'],'2026-12':['25'],'2027-1':['1'],'2027-2':['4','5','8','9','10'],'2027-3':['1'],'2027-4':['5','6','30'],'2027-6':['9'],'2027-9':['15','28'],'2027-10':['11','25'],'2027-12':['24','31']};
+const HOL_N={'2026-1-1':'元旦','2026-2-9':'春節','2026-2-10':'春節','2026-2-11':'春節','2026-2-12':'春節','2026-2-13':'春節','2026-4-4':'兒童節/清明','2026-5-1':'勞動節','2026-10-10':'國慶日','2026-12-25':'行憲紀念日','2027-1-1':'元旦','2027-2-4':'春節(小年夜)','2027-2-5':'春節(除夕)','2027-2-8':'春節(初三)','2027-2-9':'春節補假','2027-2-10':'春節補假','2027-3-1':'和平紀念日補假','2027-4-5':'清明節','2027-4-6':'兒童節補假','2027-4-30':'勞動節補假','2027-6-9':'端午節','2027-9-15':'中秋節','2027-9-28':'教師節','2027-10-11':'國慶日補假','2027-10-25':'光復節','2027-12-24':'行憲紀念日補假','2027-12-31':'元旦補假(117年)'};
+// 2026-10-17：拿掉單機版「2026/12/31 到期」，改成選到沒有國定假日資料的年份就擋生成（之後每年補下一年的 HOL 就好，不用再設期限）
+function holYearReady_(y){return Object.keys(HOL).some(k=>k.split('-')[0]===String(y));}
 let curNS='平和店',eSIdx=-1,ePIdx=-1,eSRIdx=-1,eStRIdx=-1,eCIdx=-1,adjOpen=false,generatedData=null;
 
 let needsData={平和店:[2,3,2,2,2,3,3],忠孝店:[2,3,2,3,2,3,3],培英店:[3,3,3,3,3,2,2],彰水店:[2,2,2,2,2,2,3]};
@@ -745,6 +736,7 @@ function usedDays(name,sched,cal){
 }
 
 function genSchedule(){
+  if(!holYearReady_(+document.getElementById('yr').value)){alert('系統還沒有 '+document.getElementById('yr').value+' 年的國定假日資料，請聯繫小保補上後再排班');return;}
   generatedData=null;
   document.getElementById('btn-dl').disabled=true;
   document.getElementById('main-body').innerHTML='<div class="ph"><div style="font-size:20px">⏳</div><div style="font-size:11px;font-weight:600">生成中...</div></div>';
