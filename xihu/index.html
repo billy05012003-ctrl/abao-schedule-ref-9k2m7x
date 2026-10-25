@@ -202,7 +202,7 @@ input[type=text],input[type=number],select,textarea{font-size:16px;padding:7px 8
 <div style="font-size:8px;color:#666;margin-bottom:5px;background:#f0f0f0;padding:4px 7px;border-radius:4px">↑ = 下限（至少排幾天）・月休 = 上限（最多幾天）</div>
 <div id="staff-list"></div>
 <div class="abox"><h4>＋ 新增夥伴</h4>
-<div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input type="text" id="n-name" placeholder="姓名"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="n-store"><option>平和店</option><option>忠孝店</option><option>培英店</option><option>彰水店</option><option>機動人員</option></select></div></div>
+<div class="r2"><div class="fg" style="margin-top:0"><label>簡稱</label><input type="text" id="n-name" placeholder="簡稱（兩個字）"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="n-store"><option>平和店</option><option>忠孝店</option><option>培英店</option><option>彰水店</option><option>機動人員</option></select></div></div>
 <div class="r2"><div class="fg" style="margin-top:0"><label>職別</label><select id="n-type"><option>正職</option><option>計時</option><option>八小時全職</option><option>機動人員</option></select></div><div class="fg" style="margin-top:0"><label>月休上限</label><input type="number" id="n-days" value="6" min="0" max="31"></div></div>
 <div class="r2">
 <div class="fg" style="margin-top:0"><label>平日休下限（天）</label><div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('n-wd',1,0,8)">▲</button><div class="spinner-val" id="n-wd-v">0</div><button class="spin-dn" onclick="spin('n-wd',-1,0,8)">▼</button></div><input type="hidden" id="n-wd" value="0"></div></div>
@@ -500,7 +500,7 @@ function addGroup(store){openConds[store].push({rows:[{type:'正職',skill:'不�
 function delGroup(store,gi){openConds[store].splice(gi,1);renderOpenConds();}
 function renderStaff(){document.getElementById('staff-list').innerHTML=staff.map((s,i)=>`<div class="card"><div class="ct"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap"><span style="font-size:10px;font-weight:600">${s.name}</span><span class="bdg" style="background:${SB[s.store]||'#FFFBEB'};color:${SC[s.store]||'#7A5500'}">${s.store==='機動人員'?'機動':s.store.replace('店','')}</span><span class="bdg" style="background:#f0f0f0;color:#555">${s.type}</span><span class="bdg" style="background:#E8F4FD;color:#0C447C">平${s.wd}↑ 假${s.hd}↑ 月${s.days}↑</span></div><div style="font-size:8px;color:#888;margin-top:1px">${skillStr(s.sk)}</div></div><div class="sa"><button class="bi" onclick="editS(${i})">✏️</button><button class="bi" onclick="delS(${i})">🗑</button></div></div>${eSIdx===i?renderES(i):''}</div>`).join('');}
 function spES(id,val,mn,mx){return`<div class="spin-wrap"><div class="spinner"><button class="spin-up" onclick="spin('${id}',1,${mn},${mx})">▲</button><div class="spinner-val" id="${id}-v">${val}</div><button class="spin-dn" onclick="spin('${id}',-1,${mn},${mx})">▼</button></div><input type="hidden" id="${id}" value="${val}"></div>`;}
-function renderES(i){const s=staff[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input id="es-n" type="text" value="${s.name}"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="es-s">${ALL_STORES.map(st=>`<option${st===s.store?' selected':''}>${st}</option>`).join('')}</select></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>職別</label><select id="es-t"><option${s.type==='正職'?' selected':''}>正職</option><option${s.type==='計時'?' selected':''}>計時</option><option${s.type==='八小時全職'?' selected':''}>八小時全職</option><option${s.type==='機動人員'?' selected':''}>機動人員</option></select></div><div class="fg" style="margin-top:0"><label>月休上限</label><input id="es-d" type="number" value="${s.days}" min="0" max="31"></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>平日休下限</label>${spES('es-wd',s.wd,0,8)}</div><div class="fg" style="margin-top:0"><label>假日休下限</label>${spES('es-hd',s.hd,0,8)}</div></div><div style="font-size:9px;color:#7A5500;margin-top:3px;background:#FFFBEB;padding:3px 6px;border-radius:3px">平日休下限＋假日休下限 ≤ 月休上限</div><div style="margin-top:5px"><div style="font-size:9px;color:#666;margin-bottom:2px">能力分級</div><div class="skill-row"><label class="ski"><input type="checkbox" id="es-g"${s.sk.g?' checked':''}> 煎台<select id="es-gl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.gl)}</select></label><label class="ski"><input type="checkbox" id="es-c"${s.sk.c?' checked':''}> 櫃台<select id="es-cl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.cl)}</select></label><label class="ski"><input type="checkbox" id="es-dr"${s.sk.d?' checked':''}> 包飲</label><label class="ski"><input type="checkbox" id="es-in"${s.sk.intern?' checked':''}> 實習生</label></div></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveS(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelES()">取消</button></div></div>`;}
+function renderES(i){const s=staff[i];return`<div class="ei"><div class="r2"><div class="fg" style="margin-top:0"><label>簡稱</label><input id="es-n" type="text" value="${s.name}"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="es-s">${ALL_STORES.map(st=>`<option${st===s.store?' selected':''}>${st}</option>`).join('')}</select></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>職別</label><select id="es-t"><option${s.type==='正職'?' selected':''}>正職</option><option${s.type==='計時'?' selected':''}>計時</option><option${s.type==='八小時全職'?' selected':''}>八小時全職</option><option${s.type==='機動人員'?' selected':''}>機動人員</option></select></div><div class="fg" style="margin-top:0"><label>月休上限</label><input id="es-d" type="number" value="${s.days}" min="0" max="31"></div></div><div class="r2"><div class="fg" style="margin-top:0"><label>平日休下限</label>${spES('es-wd',s.wd,0,8)}</div><div class="fg" style="margin-top:0"><label>假日休下限</label>${spES('es-hd',s.hd,0,8)}</div></div><div style="font-size:9px;color:#7A5500;margin-top:3px;background:#FFFBEB;padding:3px 6px;border-radius:3px">平日休下限＋假日休下限 ≤ 月休上限</div><div style="margin-top:5px"><div style="font-size:9px;color:#666;margin-bottom:2px">能力分級</div><div class="skill-row"><label class="ski"><input type="checkbox" id="es-g"${s.sk.g?' checked':''}> 煎台<select id="es-gl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.gl)}</select></label><label class="ski"><input type="checkbox" id="es-c"${s.sk.c?' checked':''}> 櫃台<select id="es-cl" style="width:auto;font-size:8px;padding:1px 2px">${lvOpts(s.sk.cl)}</select></label><label class="ski"><input type="checkbox" id="es-dr"${s.sk.d?' checked':''}> 包飲</label><label class="ski"><input type="checkbox" id="es-in"${s.sk.intern?' checked':''}> 實習生</label></div></div><div style="display:flex;gap:4px;margin-top:7px"><button class="badd" style="flex:2" onclick="saveS(${i})">儲存</button><button class="badd bsec" style="flex:1" onclick="cancelES()">取消</button></div></div>`;}
 function editS(i){eSIdx=(eSIdx===i?-1:i);renderStaff();}
 function cancelES(){eSIdx=-1;renderStaff();}
 function saveS(i){
@@ -1063,7 +1063,7 @@ function renderPreview(sched,cal,supMap,conflicts,mandatoryOff){
       }).join('');
       supRow=`<tr><td style="font-size:7px;color:#3C3489;padding:2px 5px;font-weight:600;white-space:nowrap;border-right:2px solid #ccc;position:sticky;left:0;background:#EDE8FF;z-index:1">支援↑</td>${cells}</tr>`;
     }
-    return`<div style="overflow-x:auto;border:1px solid #e0e0e0;border-radius:6px"><table class="ptbl" style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;min-width:32px;padding:3px 5px;position:sticky;left:0;background:#f5f5f5;z-index:2;border-right:2px solid #ccc">姓名</th>${cols}</tr></thead><tbody>${rows}${supRow}</tbody></table></div>`;
+    return`<div style="overflow-x:auto;border:1px solid #e0e0e0;border-radius:6px"><table class="ptbl" style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;min-width:32px;padding:3px 5px;position:sticky;left:0;background:#f5f5f5;z-index:2;border-right:2px solid #ccc">簡稱</th>${cols}</tr></thead><tbody>${rows}${supRow}</tbody></table></div>`;
   };
   const mobStaff=staff.filter(s=>s.type==='機動人員');
   const storeGroups=STORES.map(store=>({store,members:staff.filter(s=>s.store===store)}));
@@ -1245,7 +1245,7 @@ function renderPage2(){
     <div class="sec"><div class="sh"><div class="st">🏷️ 臨時貼班人員</div></div><div class="sb">
       ${listHtml}
       <div class="abox"><h4>＋ 新增貼班人員</h4>
-        <div class="r2"><div class="fg" style="margin-top:0"><label>姓名</label><input type="text" id="sp-name" placeholder="姓名"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="sp-store">${ALL_STORES.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+        <div class="r2"><div class="fg" style="margin-top:0"><label>簡稱</label><input type="text" id="sp-name" placeholder="簡稱（兩個字）"></div><div class="fg" style="margin-top:0"><label>所屬門市</label><select id="sp-store">${ALL_STORES.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
         <div class="fg"><label>時薪</label><input type="number" id="sp-wage" placeholder="例：196" min="0"></div>
         <button class="badd" onclick="addSupStaff()">確認新增</button>
       </div>
@@ -1258,7 +1258,7 @@ function renderPage2(){
 function addSupStaff(){
   const name=document.getElementById('sp-name').value.trim();
   const wage=+document.getElementById('sp-wage').value||0;
-  if(!name||!wage){alert('請填寫姓名與時薪');return;}
+  if(!name||!wage){alert('請填寫簡稱與時薪');return;}
   supportStaff.push({name,store:document.getElementById('sp-store').value,wage});
   supportSchedule[name]={};
   renderPage2();
@@ -1397,10 +1397,10 @@ function genPage2(){
   const storeBlocks=STORES.map(store=>{
     const members=staff.filter(s=>s.store===store);
     if(!members.length)return'';
-    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]}"><div style="width:7px;height:7px;border-radius:50%;background:${SC[store]}"></div>${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${buildRows(members)}${buildSupVisitorRow(store)}${buildTempStaffRows(store)}</tbody></table></div></div>`;
+    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]}"><div style="width:7px;height:7px;border-radius:50%;background:${SC[store]}"></div>${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">簡稱</th>${cols}</tr></thead><tbody>${buildRows(members)}${buildSupVisitorRow(store)}${buildTempStaffRows(store)}</tbody></table></div></div>`;
   }).join('');
   const mobMembers=staff.filter(s=>s.type==='機動人員');
-  const mobBlock=mobMembers.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FFFBEB">🔄 機動人員</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${buildRows(mobMembers)}</tbody></table></div></div>`:'';
+  const mobBlock=mobMembers.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FFFBEB">🔄 機動人員</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">簡稱</th>${cols}</tr></thead><tbody>${buildRows(mobMembers)}</tbody></table></div></div>`:'';
   const supRows=supportStaff.map(s=>{
     const days=cal.map(({d})=>{
       const e=supportSchedule[s.name]&&supportSchedule[s.name][d];
@@ -1409,7 +1409,7 @@ function genPage2(){
     }).join('');
     return `<tr><td style="font-weight:600;font-size:9px;text-align:left;padding:3px 5px;border-right:2px solid #ccc;position:sticky;left:0;background:#fff">${s.name}</td>${days}</tr>`;
   }).join('');
-  const supBlock=supportStaff.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FAEEDA">🏷️ 貼班人員（疊加）</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">姓名</th>${cols}</tr></thead><tbody>${supRows}</tbody></table></div></div>`:'';
+  const supBlock=supportStaff.length?`<div class="prev-sec"><div class="prev-hdr" style="background:#FAEEDA">🏷️ 貼班人員（疊加）</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th style="text-align:left;min-width:70px;position:sticky;left:0;background:#f5f5f5">簡稱</th>${cols}</tr></thead><tbody>${supRows}</tbody></table></div></div>`:'';
   const totalCost=supportStaff.reduce((sum,s)=>{
     const days=Object.values(supportSchedule[s.name]||{});
     return sum+days.reduce((a,e)=>a+e.hours*s.wage,0);
@@ -1435,7 +1435,7 @@ function downloadExcel2(){
     ws.views=[{state:'frozen',xSplit:1,ySplit:1}];
     ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
     const TS_BORDER={style:'thin',color:{argb:'FFF0F0F0'}};
-    ws.getCell(1,1).value='姓名';ws.getCell(1,1).font={name:'微軟正黑體',bold:true};ws.getCell(1,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};ws.getCell(1,1).border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};
+    ws.getCell(1,1).value='簡稱';ws.getCell(1,1).font={name:'微軟正黑體',bold:true};ws.getCell(1,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};ws.getCell(1,1).border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};
     cal.forEach(({d,wn},ci)=>{const c=ws.getCell(1,ci+2);c.value=`${d}週${wn}`;c.font={name:'微軟正黑體',bold:true};c.alignment={horizontal:'center'};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFEFEF'}};c.border={top:TS_BORDER,left:TS_BORDER,bottom:TS_BORDER,right:TS_BORDER};});
     supportStaff.forEach((s,ri)=>{
       const labelCell=ws.getCell(ri+2,1);
@@ -1677,7 +1677,7 @@ function renderPage3Preview(){
     Object.keys(parsed.tempEntries).forEach(name=>{
       rows.push(`<tr><td style="text-align:left;padding:3px 6px">${name}（貼班）</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${parsed.tempEntries[name].toFixed(1)}h</td></tr>`);
     });
-    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]||'#f0f0f0'}">${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>姓名</th><th>平日休</th><th>假日休</th><th>請假</th><th>他店支援</th><th>來店支援</th><th>出勤天數</th><th>計時時數</th><th>跨店時數</th><th>貼班時數</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+    return `<div class="prev-sec"><div class="prev-hdr" style="background:${SB[store]||'#f0f0f0'}">${store}</div><div style="overflow-x:auto"><table class="ptbl"><thead><tr><th>簡稱</th><th>平日休</th><th>假日休</th><th>請假</th><th>他店支援</th><th>來店支援</th><th>出勤天數</th><th>計時時數</th><th>跨店時數</th><th>貼班時數</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
   }).join('');
   document.getElementById('page3-preview').innerHTML=blocks;
 }
@@ -1700,7 +1700,7 @@ function downloadExcel3(){
     const sheetName=store.replace('店','');
     const ws=wb.worksheets.find(w=>w.name===sheetName);
     if(!ws)return;
-    const headers=['姓名','平日休','假日休','請假','他店支援','來店支援','出勤天數','計時時數','跨店時數','貼班時數'];
+    const headers=['簡稱','平日休','假日休','請假','他店支援','來店支援','出勤天數','計時時數','跨店時數','貼班時數'];
     const STAT_BORDER={style:'thin',color:{argb:'FFF0F0F0'}};
     headers.forEach((h,i)=>{
       const c=ws.getCell(1,8+i);
